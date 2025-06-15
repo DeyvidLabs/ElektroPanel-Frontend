@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { AuthLayout } from './layouts/authenticated/auth-layout';
 import { PublicLayout } from './layouts/public/public-layout';
 import { authGuard } from './core/guards/auth-guard';
 import { Navigation } from './shared/navigation/navigation';
