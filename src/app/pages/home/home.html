@@ -1,0 +1,54 @@
+<div class="min-h-screen bg-[#0d0d0d] text-white flex flex-col items-center justify-center px-6 py-16">
+  <div class="max-w-4xl text-center">
+    <h1 class="text-4xl md:text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-red-500">
+      Welcome to Elektro Panel
+    </h1>
+    <p class="text-base md:text-lg text-gray-400 mb-10">
+      Manage your entire self-hosted stack from a single place. From Docker containers to bots and email — Elektro Panel puts control at your fingertips.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a
+        routerLink="/dashboard"
+        class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition"
+      >
+        Launch Dashboard
+      </a>
+      <a
+        href="#features"
+        class="px-6 py-3 border border-gray-700 text-gray-300 hover:border-pink-500 hover:text-white rounded-lg transition"
+      >
+        View Features
+      </a>
+    </div>
+  </div>
+
+  <div id="features" class="mt-24 w-full max-w-5xl">
+    <h2 class="text-2xl md:text-3xl font-semibold mb-8 text-center text-gray-200">What’s Inside Elektro Panel</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="bg-[#1a1a1a] p-5 rounded-xl border border-gray-800 hover:border-purple-600 transition">
+        <h3 class="text-lg font-semibold mb-1 text-purple-400">Docker Control</h3>
+        <p class="text-gray-400 text-sm">Start, stop, and monitor containers without touching the CLI.</p>
+      </div>
+      <div class="bg-[#1a1a1a] p-5 rounded-xl border border-gray-800 hover:border-pink-500 transition">
+        <h3 class="text-lg font-semibold mb-1 text-pink-400">Bot Manager</h3>
+        <p class="text-gray-400 text-sm">Telegram and Discord bots, with full token and status control.</p>
+      </div>
+      <div class="bg-[#1a1a1a] p-5 rounded-xl border border-gray-800 hover:border-blue-500 transition">
+        <h3 class="text-lg font-semibold mb-1 text-blue-400">Email Interface</h3>
+        <p class="text-gray-400 text-sm">Manage your mail server, users and filters from a clean UI.</p>
+      </div>
+      <div class="bg-[#1a1a1a] p-5 rounded-xl border border-gray-800 hover:border-green-500 transition">
+        <h3 class="text-lg font-semibold mb-1 text-green-400">Live Metrics</h3>
+        <p class="text-gray-400 text-sm">System health, logs and service stats updated in real-time.</p>
+      </div>
+      <div class="bg-[#1a1a1a] p-5 rounded-xl border border-gray-800 hover:border-yellow-500 transition">
+        <h3 class="text-lg font-semibold mb-1 text-yellow-300">User Roles</h3>
+        <p class="text-gray-400 text-sm">Control who can access what, with role-based permissions.</p>
+      </div>
+      <div class="bg-[#1a1a1a] p-5 rounded-xl border border-gray-800 hover:border-red-500 transition">
+        <h3 class="text-lg font-semibold mb-1 text-red-400">Security First</h3>
+        <p class="text-gray-400 text-sm">2FA, token auth, and safe network access — baked in.</p>
+      </div>
+    </div>
+  </div>
+</div>
