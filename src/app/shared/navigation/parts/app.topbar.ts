@@ -16,7 +16,7 @@ import { LayoutService } from '../../../core/services/layout';
                 <i class="pi pi-bars"></i>
             </button>
             <a class="layout-topbar-logo" routerLink="/">
-                <svg viewBox="0 0 54 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- <svg viewBox="0 0 54 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                         fill-rule="evenodd"
                         clip-rule="evenodd"
@@ -32,7 +32,7 @@ import { LayoutService } from '../../../core/services/layout';
                             fill="var(--primary-color)"
                         />
                     </g>
-                </svg>
+                </svg> -->
                 <span>ElektroPanel</span>
             </a>
         </div>

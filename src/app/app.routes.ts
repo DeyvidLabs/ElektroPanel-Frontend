@@ -7,6 +7,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 import { Documentation } from './pages/documentation/documentation';
 import { Landing } from './pages/landing/landing';
 import { Notfound } from './pages/notfound/notfound';
+import { Proxmox } from './pages/proxmox/proxmox';
 // export const routes: Routes = [
 //   {
 //     path: '',
@@ -45,13 +46,24 @@ import { Notfound } from './pages/notfound/notfound';
 export const appRoutes: Routes = [
     {
         path: '',
+        component: PublicLayout,
+        children: [
+            {
+                path: '',
+                loadComponent: () => import('./pages/home/home').then(m => m.Home)
+            }
+        ] 
+    },
+    {
+        path: '',
         component: Navigation,
         canActivate: [authGuard],
         children: [
             { path: 'dashboard', component: Dashboard },
             { path: 'uikit', loadChildren: () => import('./pages/uikit/uikit.routes') },
             { path: 'documentation', component: Documentation },
-            { path: 'pages', loadChildren: () => import('./pages/pages.routes') }
+            { path: 'pages', loadChildren: () => import('./pages/pages.routes') },
+            { path: 'proxmox', component: Proxmox },
         ]
     },
     { path: 'landing', component: Landing },
