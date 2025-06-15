@@ -1,0 +1,211 @@
+<main class="bg-gray-900 p-4 proxmox-container">
+  <!-- Enhanced Header -->
+  <div class="text-center py-6 mb-6">
+    <div class="inline-flex items-center bg-gray-800 px-8 py-4 rounded-2xl shadow-lg border border-blue-500/30">
+      <img height="60" width="60" src="./proxmox.svg" class="mr-4 filter drop-shadow-lg" />
+      <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+        Proxmox Dashboard
+      </h1>
+    </div>
+  </div>
+
+  <!-- Nodes Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+    <div *ngFor="let node of nodes" class="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 overflow-hidden transition-all hover:border-cyan-500/50">
+      <!-- Card Header -->
+      <div class="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4 border-b border-gray-700">
+        <div class="flex justify-between items-center">
+          <h3 class="text-xl font-bold text-cyan-300 flex items-center">
+            <i class="pi pi-server mr-2"></i> {{node.node}}
+          </h3>
+          <p-tag [value]="node.status" [severity]="node.status === 'online' ? 'success' : 'danger'"></p-tag>
+        </div>
+      </div>
+      
+      <!-- Node Metrics -->
+      <div class="p-6 space-y-5">
+        <!-- CPU Metric -->
+        <div>
+          <div class="flex justify-between mb-2">
+            <span class="text-gray-300 font-medium">
+              <i class="pi pi-cog mr-2"></i> CPU Usage
+            </span>
+            <span class="font-mono text-cyan-300">
+              {{ nodeInfo[node.node]?.cpu * 100 | number: '1.0-0' }}%
+            </span>
+          </div>
+          <p-progressBar 
+            [value]="nodeInfo[node.node]?.cpu * 100" 
+            [showValue]="false"
+            class="h-3 bg-gray-700 rounded-full">
+          </p-progressBar>
+        </div>
+
+        <!-- Memory Metric -->
+        <div>
+          <div class="flex justify-between mb-2">
+            <span class="text-gray-300 font-medium">
+              <i class="pi pi-database mr-2"></i> Memory
+            </span>
+            <span class="font-mono text-cyan-300">
+              {{ (nodeInfo[node.node]?.memory.used / 1024 / 1024 / 1024 | number: '1.1-1') }}GB / 
+              {{ (nodeInfo[node.node]?.memory.total / 1024 / 1024 / 1024 | number: '1.1-1') }}GB
+            </span>
+          </div>
+          <p-progressBar 
+            [value]="(nodeInfo[node.node]?.memory.used / nodeInfo[node.node]?.memory.total) * 100" 
+            [showValue]="false"
+            class="h-3 bg-gray-700 rounded-full">
+          </p-progressBar>
+        </div>
+
+        <!-- Disk Metric -->
+        <div>
+          <div class="flex justify-between mb-2">
+            <span class="text-gray-300 font-medium">
+              <i class="pi pi-file mr-2"></i> Disk Space
+            </span>
+            <span class="font-mono text-cyan-300">
+              {{ (nodeInfo[node.node]?.rootfs.used / 1024 / 1024 / 1024 | number: '1.1-1') }}GB / 
+              {{ (nodeInfo[node.node]?.rootfs.total / 1024 / 1024 / 1024 | number: '1.1-1') }}GB
+            </span>
+          </div>
+          <p-progressBar 
+            [value]="(nodeInfo[node.node]?.rootfs.used / nodeInfo[node.node]?.rootfs.total) * 100" 
+            [showValue]="false"
+            class="h-3 bg-gray-700 rounded-full">
+          </p-progressBar>
+        </div>
+
+        <!-- VM Toggle -->
+        <div class="pt-4">
+          <p-button
+            icon="pi pi-angle-down" 
+            label="Show VMs" 
+            severity="info"
+            
+            (click)="showVMModal(node.node)">
+          </p-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VM Modal -->
+  <p-dialog 
+    header="Virtual Machines on {{selectedNode}}" 
+    [(visible)]="vmDialogVisible" 
+    [style]="{ width: 'min(90vw, 1000px)' }"
+    [modal]="true"
+    [dismissableMask]="true"
+    [closeOnEscape]="true"
+    [draggable]="false">
+
+      <ng-template pTemplate="header">
+    <div class="flex justify-between items-center w-full">
+      <span class="text-lg font-semibold">Virtual Machines on {{selectedNode}}</span>
+      <div class="flex items-center gap-2">
+        <button 
+          pButton 
+          icon="pi pi-refresh" 
+          class="p-button-rounded p-button-sm p-button-info"
+          (click)="fetchVMs(selectedNode)"
+          pTooltip="Refresh VMs" tooltipPosition="top">
+        </button>
+      </div>
+    </div>
+  </ng-template>
+    
+    <div *ngIf="vms[selectedNode]" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div *ngFor="let vm of vms[selectedNode]" class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+        <div class="flex justify-between items-start">
+          <div>
+            <h4 class="text-lg font-bold text-cyan-300">VM {{vm.vmid}}</h4>
+            <p class="text-gray-400">{{vm.name || 'Unnamed VM'}}</p>
+          </div>
+          <p-tag [value]="vm.status" [severity]="vm.status === 'running' ? 'success' : 'danger'"></p-tag>
+        </div>
+        
+            <!-- VM Metrics -->
+        <div class="mt-4 space-y-3">
+          <!-- CPU Usage -->
+          <div>
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-300 font-medium">
+                <i class="pi pi-cog mr-2"></i> CPU Usage
+              </span>
+              <span class="text-cyan-300">
+                {{ (vm.statusInfo?.cpu * 100 || 0) | number: '1.0-0' }}%
+              </span>
+            </div>
+            <p-progressBar 
+              [value]="vm.statusInfo?.cpu * 100 || 0" 
+              [showValue]="false"
+              class="h-1 bg-gray-700 rounded-full"></p-progressBar>
+          </div>
+          
+          <!-- Memory Usage -->
+          <div>
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-300 font-medium">
+                <i class="pi pi-database mr-2"></i> Memory
+              </span>
+              <span class="text-cyan-300">
+                {{ (vm.statusInfo?.mem / 1024 / 1024 / 1024 | number: '1.1-1') || 0 }}GB / 
+                {{ (vm.statusInfo?.maxmem / 1024 / 1024 / 1024 | number: '1.1-1') || 0 }}GB
+              </span>
+            </div>
+            <p-progressBar 
+              [value]="(vm.statusInfo?.mem / vm.statusInfo?.maxmem) * 100 || 0" 
+              [showValue]="false"
+              class="h-1 bg-gray-700 rounded-full"></p-progressBar>
+          </div>
+          
+          <!-- Disk Usage -->
+          <div>
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-300 font-medium">
+                <i class="pi pi-file mr-2"></i> Disk Space
+              </span>
+              <span class="text-cyan-300">
+                {{ (vm.diskUsed / 1024 / 1024 / 1024 | number: '1.1-1') || 0 }}GB / 
+                {{ (vm.diskTotal / 1024 / 1024 / 1024 | number: '1.1-1') || 0 }}GB
+              </span>
+            </div>
+            <p-progressBar 
+              [value]="vm.diskPercentage || 0" 
+              [showValue]="false"
+              class="h-1 bg-gray-700 rounded-full"></p-progressBar>
+          </div>
+        </div>
+
+
+        <div class="mt-4 flex justify-end gap-2">
+          <button 
+            pButton 
+            icon="pi pi-play" 
+            class="p-button-success p-button-sm"
+            [disabled]="vm.status === 'running'"
+            (click)="startVM(selectedNode, vm.vmid)"
+            pTooltip="Start VM" tooltipPosition="top">
+          </button>
+          
+          <button 
+            pButton 
+            icon="pi pi-stop" 
+            class="p-button-danger p-button-sm"
+            [disabled]="vm.status !== 'running'"
+            (click)="stopVM(selectedNode, vm.vmid)"
+            pTooltip="Stop VM" tooltipPosition="top"></button>
+          
+          <button 
+            pButton 
+            icon="pi pi-power-off" 
+            class="p-button-warning p-button-sm"
+            (click)="shutdownVM(selectedNode, vm.vmid)"
+            pTooltip="Shutdown VM" tooltipPosition="top"></button>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+</main>
