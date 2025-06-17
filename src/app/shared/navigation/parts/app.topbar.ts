@@ -33,6 +33,8 @@ import { LayoutService } from '../../../core/services/layout';
                         />
                     </g>
                 </svg> -->
+                <img src="./elektropanel.svg" alt="Logo" class="layout-topbar-logo-image" [height]="48" [width]="48" />
+
                 <span>ElektroPanel</span>
             </a>
         </div>

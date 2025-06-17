@@ -1,4 +1,4 @@
-<main class="p-4 proxmox-container">
+<main class="bg-gray-900 p-4">
   <!-- Enhanced Header -->
   <div class="text-center py-6 mb-6">
     <div class="inline-flex items-center bg-gray-800 px-8 py-4 rounded-2xl shadow-lg border border-blue-500/30">
@@ -101,20 +101,20 @@
     [closeOnEscape]="true"
     [draggable]="false">
 
-      <ng-template pTemplate="header">
-    <div class="flex justify-between items-center w-full">
-      <span class="text-lg font-semibold">Virtual Machines on {{selectedNode}}</span>
-      <div class="flex items-center gap-2">
-        <button 
-          pButton 
-          icon="pi pi-refresh" 
-          class="p-button-rounded p-button-sm p-button-info"
-          (click)="fetchVMs(selectedNode)"
-          pTooltip="Refresh VMs" tooltipPosition="top">
-        </button>
+    <ng-template pTemplate="header">
+      <div class="flex justify-between items-center w-full">
+        <span class="text-lg font-semibold">Virtual Machines on {{selectedNode}}</span>
+        <div class="flex items-center gap-2">
+          <button 
+            pButton 
+            icon="pi pi-refresh" 
+            class="p-button-rounded p-button-sm p-button-info"
+            (click)="fetchVMs(selectedNode)"
+            pTooltip="Refresh VMs" tooltipPosition="top">
+          </button>
+        </div>
       </div>
-    </div>
-  </ng-template>
+    </ng-template>
     
     <div *ngIf="vms[selectedNode]" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div *ngFor="let vm of vms[selectedNode]" class="bg-gray-800 rounded-lg p-4 border border-gray-700">
