@@ -4,6 +4,7 @@ import { StatsWidget } from './components/statswidget';
 import { RecentSalesWidget } from './components/recentsaleswidget';
 import { BestSellingWidget } from './components/bestsellingwidget';
 import { RevenueStreamWidget } from './components/revenuestreamwidget';
+import { UserService } from '../../core/services/user';
 
 @Component({
     selector: 'app-dashboard',
@@ -22,4 +23,5 @@ import { RevenueStreamWidget } from './components/revenuestreamwidget';
         </div>
     `
 })
-export class Dashboard {}
+export class Dashboard {
+}

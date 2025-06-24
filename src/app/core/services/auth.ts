@@ -9,7 +9,6 @@ export class AuthService {
 
   isAuthenticated(): Observable<boolean> {
     return this.httpService.get<{ success: boolean }>('/auth/validate', {
-      withCredentials: true,
     }).pipe(
       map(res => res.success === true),
       catchError(err => {
@@ -19,9 +18,8 @@ export class AuthService {
     );
   }
 
-  logout() {
-    localStorage.removeItem('access_token');
-    document.cookie = 'access_token=; Max-Age=0; path=/;';
-    document.cookie = 'refresh_token=; Max-Age=0; path=/;';
+  // auth.service.ts
+  logout(): Observable<any> {
+    return this.httpService.post('/auth/logout', {});
   }
 }

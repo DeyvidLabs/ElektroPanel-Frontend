@@ -1,0 +1,152 @@
+<app-configurator />
+
+<div class="min-h-screen flex items-center justify-center px-4 bg-[var(--color-surface-950)]">
+  <div class="w-full max-w-md p-6 rounded-2xl shadow-xl space-y-6 bg-[var(--color-surface-900)] text-[var(--color-surface-100)]">
+    <h2 class="text-2xl font-semibold text-center text-[var(--color-primary-300)]">
+      {{ authMode === 'login' ? 'Login' : 'Register' }}
+    </h2>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+      <div *ngIf="authMode === 'register'">
+        <label for="name" class="block text-sm font-medium text-[var(--color-surface-300)]">Name</label>
+        <input
+          pInputText
+          formControlName="name"
+          type="text"
+          id="name"
+          class="w-full p-inputtext p-component bg-[var(--color-surface-800)] text-[var(--color-surface-100)] border border-[var(--color-surface-700)]"
+        />
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium text-[var(--color-surface-300)]">Email</label>
+        <input
+          pInputText
+          formControlName="email"
+          type="email"
+          id="email"
+          class="w-full p-inputtext p-component bg-[var(--color-surface-800)] text-[var(--color-surface-100)] border border-[var(--color-surface-700)]"
+        />
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-[var(--color-surface-300)]">Password</label>
+        <p-password
+          formControlName="password"
+          [feedback]="true"
+          [toggleMask]="true"
+          id="password"
+          styleClass="w-full"
+          [minlength]="8"
+          inputStyleClass="w-full py-2 px-3 rounded-md border
+            bg-[var(--color-surface-800)] text-[var(--color-surface-100)]
+            border-[var(--color-surface-700)]
+            focus:outline-none"
+          [ngClass]="{
+            'border-red-500 ng-invalid ng-dirty': form.errors?.['passwordMismatch'] && form.get('confirmPassword')?.touched
+          }"
+        />
+      </div>
+
+      <div *ngIf="authMode === 'register'">
+        <label for="confirmPassword" class="block text-sm font-medium text-[var(--color-surface-300)]">Confirm Password</label>
+        <p-password
+          formControlName="confirmPassword"
+          [feedback]="true"
+          [toggleMask]="true"
+          id="confirmPassword"
+          styleClass="w-full"
+          [minlength]="8"
+          inputStyleClass="w-full py-2 px-3 rounded-md border
+            bg-[var(--color-surface-800)] text-[var(--color-surface-100)]
+            border-[var(--color-surface-700)]
+            focus:outline-none"
+          [ngClass]="{
+            'border-red-500 ng-invalid ng-dirty': form.errors?.['passwordMismatch'] && form.get('confirmPassword')?.touched
+          }"
+        />
+
+        <div *ngIf="form.errors?.['passwordMismatch'] && form.get('confirmPassword')?.touched">
+          <p class="text-sm text-red-500 mt-1">Passwords do not match</p>
+        </div>
+      </div>
+      <div *ngIf="authError" class="text-red-500 text-md text-center">
+        {{ authError }}
+      </div>
+
+      <p class="text-xs text-[var(--color-surface-400)]">
+        By continuing, you agree to our
+        <button type="button" class="text-[var(--color-primary-400)] hover:underline cursor-pointer" (click)="showPrivacy = true">
+          Privacy Policy
+        </button>.
+      </p>
+
+      <button
+        pButton
+        type="submit"
+        class="w-full bg-[var(--color-primary-700)] text-white py-2 px-4 rounded-lg hover:bg-[var(--color-primary-600)] cursor-pointer"
+        [disabled]="form.invalid"
+      >
+        {{ authMode === 'login' ? 'Login' : 'Register' }}
+      </button>
+
+      <button
+        type="button"
+        class="w-full bg-white text-black py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-200 transition cursor-pointer"
+        (click)="redirectToGoogleAuth()"
+      >
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="h-5 w-5 cursor-pointer" />
+        Continue with Google
+      </button>
+    </form>
+
+    <button class="text-sm text-[var(--color-primary-400)] hover:underline w-full cursor-pointer" (click)="toggleMode()">
+      {{ authMode === 'login' ? 'Don’t have an account? Register' : 'Already have an account? Login' }}
+    </button>
+  </div>
+
+  <p-dialog
+    [(visible)]="showPrivacy"
+    modal
+    header="Privacy Policy"
+    [style]="{ width: '50vw', maxHeight: '80vh' }"
+    [baseZIndex]="1100"
+    [closable]="true"
+    [dismissableMask]="true"
+  >
+    <ng-template pTemplate="content">
+      <div class="prose prose-sm max-h-[60vh] overflow-auto text-left text-[var(--color-surface-100)]">
+        <h2>Privacy Policy</h2>
+        <p>Last updated: June 22, 2025</p>
+
+        <p>We are committed to protecting your personal data and your privacy. This Privacy Policy explains how we collect, use, and protect your information when you use our application.</p>
+
+        <h3>1. Data We Collect</h3>
+        <ul>
+          <li><strong>Personal Information:</strong> Name, email address, and password (encrypted).</li>
+          <li><strong>Third-party Login:</strong> If you use Google Login, we collect your name and email from your Google account.</li>
+          <li><strong>Usage Data:</strong> We may collect anonymous usage statistics for performance and analytics purposes.</li>
+        </ul>
+
+        <h3>2. How We Use Your Data</h3>
+        <ul>
+          <li>To authenticate you and manage your account.</li>
+          <li>To provide and improve our services.</li>
+          <li>To communicate with you if necessary (e.g., password reset, security alerts).</li>
+        </ul>
+
+        <h3>3. Data Storage and Security</h3>
+        <p>Your data is stored securely on our servers with encryption and access control. Passwords are never stored in plain text.</p>
+
+        <h3>4. Sharing of Data</h3>
+        <p>We do not sell or share your personal data with third parties except for services necessary to operate the platform (e.g., Google authentication).</p>
+
+        <h3>5. Your Rights</h3>
+        <p>You have the right to access, update, or delete your personal information at any time. Contact us if you wish to exercise any of your rights under applicable data protection laws.</p>
+
+        <h3>6. Contact</h3>
+        <p>If you have any questions about this Privacy Policy, you can contact us at <a href="mailto:support@example.com" class="text-[var(--color-primary-400)] hover:underline">support&#64;example.com</a>.</p>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>
