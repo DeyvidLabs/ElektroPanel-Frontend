@@ -8,22 +8,26 @@ export class HttpService {
 
   constructor(private http: HttpClient) {}
 
-  get<T>(endpoint: string, options?: { headers?: HttpHeaders; params?: HttpParams; withCredentials?: boolean }) {
-  return this.http.get<T>(this.baseUrl + endpoint, {
-    ...options,
-    withCredentials: options?.withCredentials ?? false
-  });
-}
+  get<T>(endpoint: string, options?: { headers?: HttpHeaders; params?: HttpParams}) {
+    return this.http.get<T>(this.baseUrl + endpoint, {
+      ...options,
+      withCredentials: true
+    });
+  }
 
   post<T>(endpoint: string, body: any, options?: { headers?: HttpHeaders; params?: HttpParams }) {
-    return this.http.post<T>(this.baseUrl + endpoint, body, options);
+    return this.http.post<T>(this.baseUrl + endpoint, body, { ...options, withCredentials: true });
   }
 
   put<T>(endpoint: string, body: any, options?: { headers?: HttpHeaders; params?: HttpParams }) {
-    return this.http.put<T>(this.baseUrl + endpoint, body, options);
+    return this.http.put<T>(this.baseUrl + endpoint, body, { ...options, withCredentials: true });
   }
 
-  delete<T>(endpoint: string, options?: { headers?: HttpHeaders; params?: HttpParams }) {
-    return this.http.delete<T>(this.baseUrl + endpoint, options);
+  patch<T>(endpoint: string, body: any, options?: { headers?: HttpHeaders; params?: HttpParams }) {
+    return this.http.patch<T>(this.baseUrl + endpoint, body, { ...options, withCredentials: true });
+  }
+
+  delete<T>(endpoint: string, body: any, options?: { headers?: HttpHeaders; params?: HttpParams }) {
+    return this.http.delete<T>(this.baseUrl + endpoint, { body, ...options, withCredentials: true });
   }
 }

@@ -7,6 +7,10 @@ import { Documentation } from './pages/documentation/documentation';
 import { Landing } from './pages/landing/landing';
 import { Notfound } from './pages/notfound/notfound';
 import { Proxmox } from './pages/proxmox/proxmox';
+import { ErrorComponent } from './pages/error/error';
+import { AdminComponent } from './pages/admin/admin';
+import { adminGuard } from './core/guards/admin-guard';
+import { AuthComponent } from './pages/auth/auth';
 // export const routes: Routes = [
 //   {
 //     path: '',
@@ -63,13 +67,15 @@ export const appRoutes: Routes = [
             { path: 'documentation', component: Documentation },
             { path: 'pages', loadChildren: () => import('./pages/pages.routes') },
             { path: 'proxmox', component: Proxmox },
+            { path: 'admin', component: AdminComponent, canActivate: [adminGuard]},
+            { path: 'settings', loadComponent: () => import('./pages/settings/settings').then(m => m.Settings)},
         ]
     },
     { path: 'landing', component: Landing },
     { path: 'notfound', component: Notfound },
-    {
-      path: 'login',
-      loadComponent: () => import('./pages/login/login').then(m => m.Login)
-    },
+    { path: 'auth', component: AuthComponent },
+    { path: 'error', component: ErrorComponent },
+
+
     { path: '**', redirectTo: '/notfound' }
 ];

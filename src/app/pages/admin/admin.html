@@ -1,0 +1,189 @@
+<app-configurator />
+<div class="card p-4 rounded-xl shadow-md">
+  <div class="text-center py-3">
+    <div class="items-center px-8 py-4 rounded-2xl">
+      <h1 class="text-3xl font-bold bg-clip-text text-primary">User Management</h1>
+    </div>
+  </div>
+  
+    <p-table
+        #dt1
+        [value]="users"
+        dataKey="id"
+        [rows]="10"
+        [loading]="loading"
+        [rowHover]="true"
+        [showGridlines]="true"
+        [paginator]="true"
+        [globalFilterFields]="['name', 'email', 'status']"
+        responsiveLayout="scroll"
+    >
+    <ng-template #caption>
+        <div class="flex justify-between items-center flex-column sm:flex-row">
+            <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt1)"></button>
+            <p-iconfield iconPosition="left" class="ml-auto">
+                <p-inputicon>
+                    <i class="pi pi-search"></i>
+                </p-inputicon>
+                <input pInputText type="text" (input)="onGlobalFilter(dt1, $event)" placeholder="Search keyword" class="p-inputtext p-component"/>
+            </p-iconfield>
+        </div>
+    </ng-template>
+    
+    <ng-template #header>
+        <tr>
+            <th pSortableColumn="name" style="min-width: 12rem">
+                <div class="flex justify-between items-center">
+                    Name
+                    <p-sortIcon field="name"></p-sortIcon>
+                    <p-columnFilter type="text" field="name" display="menu" placeholder="Search by name"></p-columnFilter>
+                </div>
+            </th>
+                
+            <th pSortableColumn="email" style="min-width: 16rem">
+                <div class="flex justify-between items-center">
+                    Email
+                    <p-sortIcon field="email"></p-sortIcon>
+                    <p-columnFilter type="text" field="email" display="menu" placeholder="Search by email"></p-columnFilter>
+                </div>
+            </th>
+                
+            <th pSortableColumn="createdAt" style="min-width: 12rem">
+                <div class="flex justify-between items-center">
+                    Date Created
+                    <p-sortIcon field="createdAt"></p-sortIcon>
+                    <p-columnFilter type="date" field="createdAt" display="menu" placeholder="Filter by date"></p-columnFilter>
+                </div>
+            </th>
+                
+            <th pSortableColumn="enabled" style="min-width: 10rem">
+                <div class="flex justify-between items-center">
+                    Status
+                    <p-sortIcon field="enabled"></p-sortIcon>
+                    <p-columnFilter field="enabled" matchMode="equals" display="menu">
+                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                        <p-dropdown [ngModel]="value" [options]="statusOptions" (onChange)="filter($event.value)"
+                                    placeholder="Select Status" [style]="{ 'min-width': '12rem' }">
+                        <ng-template let-option pTemplate="item">
+                            <p-tag [value]="option.label" [severity]="option.severity"></p-tag>
+                        </ng-template>
+                        </p-dropdown>
+                    </ng-template>
+                    </p-columnFilter>
+                </div>
+            </th>
+                
+            <th style="min-width: 6rem">
+                Actions
+            </th>
+        </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-user>
+      <tr>
+        <td>{{ user.name }} {{ user.permission }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>
+          <p-tag [value]="user.enabled ? 'Enabled' : 'Disabled'" 
+                 [severity]="user.enabled ? 'success' : 'danger'" (click)="toggleUserStatus(user)" class="cursor-pointer"></p-tag>
+        </td>
+        <td>
+          <p-button icon="pi pi-ellipsis-h" styleClass="p-button-text" (click)="openUserModal(user)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center p-4">
+          <div class="flex flex-column align-items-center justify-content-center gap-3">
+            <i class="pi pi-search" style="font-size: 2rem"></i>
+            <span>No users found</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="loadingbody">
+      <tr>
+        <td colspan="5" class="text-center p-4">
+          <div class="flex align-items-center justify-content-center gap-2">
+            <i class="pi pi-spinner pi-spin"></i>
+            <span>Loading users...</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+<p-dialog
+  header="Manage User Permissions"
+  [(visible)]="displayModal"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [closable]="true"
+  [dismissableMask]="true"
+  [breakpoints]="{ '960px': '90vw' }"
+>
+  <div class="mb-4">
+    <label for="permissions" class="font-medium block mb-2">Permissions</label>
+    <p-multiSelect
+      id="permissions"
+      [options]="permissions"
+      [(ngModel)]="selectedPermissions"
+      optionLabel="name"
+      optionValue="id"
+      placeholder="Select permissions"
+      display="chip"
+      class="w-full"
+      appendTo="body"
+      [filter]="true"
+      (onFilter)="onMultiSelectFilter($event)"
+      [maxSelectedLabels]="9999"
+    >
+      <ng-template let-permission pTemplate="item">
+        <div [pTooltip]="permission.description" tooltipPosition="top">
+          {{ permission.name }}
+        </div>
+      </ng-template>
+
+    <ng-template let-empty="emptyFilterMessage" pTemplate="emptyfilter">
+      <div class="px-2 py-3 text-center">
+        <p class="font-bold">{{ empty }}</p>
+        <div class="flex flex-column gap-2">
+          <p-iftalabel>
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="newPermissionDescription"
+              placeholder="Enter permission description"
+              class="w-full p-inputtext p-component"
+            />
+            <label for="username">Description</label>
+          </p-iftalabel>
+          <p-button
+            label="Create '{{ filterText }}'"
+            icon="pi pi-plus"
+            class="mt-2"
+            size="small"
+            (click)="createAndSelectPermission()"
+            [disabled]="!filterText.trim() || !newPermissionDescription.trim()"
+          ></p-button>
+        </div>
+      </div>
+    </ng-template>
+  </p-multiSelect>
+
+  </div>
+
+  <div class="flex justify-end gap-2 mt-4">
+    <p-button label="Cancel" icon="pi pi-times" class="p-button-text" (click)="closeModal()"></p-button>
+    <p-button label="Save" icon="pi pi-check" (click)="saveUserPermissions()"></p-button>
+    <!-- <p-button icon="pi pi-trash" styleClass="p-button-text" (click)="deleteUser(user)" *ngIf="user.email !== currentUser.email"></p-button> -->
+    <p-button icon="pi pi-trash" styleClass="p-button-text" (click)="deleteUser()" *ngIf="selectedUser && currentUser && selectedUser.email !== currentUser.email"></p-button>
+  </div>
+</p-dialog>
+
+
+</div>

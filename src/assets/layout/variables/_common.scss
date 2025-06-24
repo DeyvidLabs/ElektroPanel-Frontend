@@ -1,4 +1,6 @@
+// styles.scss (global styles)
 :root {
+    // PrimeNG variables
     --primary-color: var(--p-primary-color);
     --primary-contrast-color: var(--p-primary-contrast-color);
     --text-color: var(--p-text-color);
@@ -18,3 +20,4 @@
     --focus-ring-offset: var(--p-focus-ring-offset);
     --focus-ring-shadow: var(--p-focus-ring-shadow);
 }
+

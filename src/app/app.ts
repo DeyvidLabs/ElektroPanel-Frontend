@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 
@@ -9,5 +9,5 @@ import { ToastModule } from 'primeng/toast';
   styleUrl: './app.css'
 })
 export class App {
-  protected title = 'ElektroPanel';
+
 }
