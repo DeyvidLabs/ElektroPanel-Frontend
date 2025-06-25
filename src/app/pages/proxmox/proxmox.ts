@@ -23,30 +23,24 @@ export class Proxmox {
 
   nodes: any[] = [];
   vms: { [key: string]: any } = {};
-  vmStatus: any = null;
-  vmConfig: any = null;
   nodeInfo: { [key: string]: any } = {};
-  vmStorage: { [key: string]: any } = {};
-  nodeInfoDelay: any;
   vmInfoDelay: { [key: string]: any } = {};
   isCollapsed: { [key: string]: boolean } = {};
-  isUpdating: { [key: string]: boolean } = {};
   userPermissions: string[] = [];
   vmDialogVisible: boolean = false;
   selectedNode: string = ''; // Variable to store the selected node for the modal
-  selectedVMs: any[] = []; // Store selected VMs for modal
   selectedVM: any = null; // Store selected VM for actions like start, stop, restart, etc.
 
   delayUpdateInfo: number = 30000;
   delayUpdateVMs: number = 10000;
   delayRefresh: number = 7500;
+  nodeInfoDelay: number = 0;
   
   constructor(private proxmoxService: ProxmoxService, private toastService: ToastService) {}
 
   ngOnInit(): void {
     this.fetchNodes();
     this.startUpdatingNodeInfo();
-    this.loadPermissions();
   }
 
   ngOnDestroy(): void {
@@ -127,31 +121,46 @@ fetchVMStorage(nodeName: string, vmid: number) {
 
   // Start VM
   startVM(nodeName: string, vmid: number) {
-    this.proxmoxService.startVM(nodeName, vmid).subscribe(() => {
-      this.toastService.success("Power Operation", `VM ${vmid} on ${nodeName} is starting!`);
-      setTimeout(() => {
-        this.fetchVMStatus(nodeName, vmid);
-      }, this.delayRefresh);
+    this.proxmoxService.startVM(nodeName, vmid).subscribe({
+      next: () => {
+        this.toastService.success("Power Operation", `VM ${vmid} on ${nodeName} is starting!`);
+        setTimeout(() => {
+          this.fetchVMStatus(nodeName, vmid);
+        }, this.delayRefresh);
+      },
+      error: (err) => {
+        this.toastService.error("Power Operation", `Could not start VM ${vmid} on ${nodeName}.`);
+      }
     });
   }
 
   // Stop VM
   stopVM(nodeName: string, vmid: number) {
-    this.proxmoxService.stopVM(nodeName, vmid).subscribe(() => {
-      this.toastService.error("Power Operation", `VM ${vmid} on ${nodeName} is stopping!`);
-      setTimeout(() => {
-        this.fetchVMStatus(nodeName, vmid);
-      }, this.delayRefresh);
+    this.proxmoxService.stopVM(nodeName, vmid).subscribe({
+      next: () => {
+        this.toastService.error("Power Operation", `VM ${vmid} on ${nodeName} is stopping!`);
+        setTimeout(() => {
+          this.fetchVMStatus(nodeName, vmid);
+        }, this.delayRefresh);
+      },
+      error: (err) => {
+        this.toastService.error("Power Operation", `Could not stop VM ${vmid} on ${nodeName}.`);
+      }
     });
   }
 
   // Shutdown VM
   shutdownVM(nodeName: string, vmid: number) {
-    this.proxmoxService.shutdownVM(nodeName, vmid).subscribe(() => {
-      this.toastService.error("Power Operation", `VM ${vmid} on ${nodeName} is shutting down!`);
-      setTimeout(() => {
-        this.fetchVMStatus(nodeName, vmid);
-      }, this.delayRefresh);
+    this.proxmoxService.shutdownVM(nodeName, vmid).subscribe({
+      next: () => {
+        this.toastService.error("Power Operation", `VM ${vmid} on ${nodeName} is shutting down!`);
+        setTimeout(() => {
+          this.fetchVMStatus(nodeName, vmid);
+        }, this.delayRefresh);
+      },
+      error: (err) => {
+        this.toastService.error("Power Operation", `Could not shutdown VM ${vmid} on ${nodeName}.`);
+      }
     });
   }
 
@@ -162,6 +171,7 @@ fetchVMStorage(nodeName: string, vmid: number) {
       this.startVM(nodeName, vmid);
     }, this.delayRefresh * 2);
   }
+
 
   fetchNodeInfo(nodeName: string) {
     this.proxmoxService.getNodeInfo(nodeName).subscribe({
@@ -184,6 +194,7 @@ fetchVMStorage(nodeName: string, vmid: number) {
         this.fetchNodeInfo(node.node);
       });
     }, this.delayUpdateInfo);
+    console.log(this.nodeInfoDelay)
   }
 
   // Fetch nodes from Proxmox
@@ -202,26 +213,4 @@ fetchVMStorage(nodeName: string, vmid: number) {
       });
     });
   }
-
-  // Load permissions for the user
-  loadPermissions(): void {
-    const userPermissions = sessionStorage.getItem('permissions');
-    if (userPermissions) {
-      try {
-        this.userPermissions = JSON.parse(userPermissions).map((p: { name: string }) => p.name);
-      } catch (error) {
-        console.error('Failed to parse permissions:', error);
-        this.userPermissions = [];
-      }
-    }
-  }
-
-  // Check if user has a certain permission
-  hasPermission(permission: string): boolean {
-    return (
-      this.userPermissions.includes(permission) || this.userPermissions.includes('admin')
-    );
-  }
-
-
 }
