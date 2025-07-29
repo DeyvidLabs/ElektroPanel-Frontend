@@ -1,0 +1,160 @@
+<app-configurator />
+
+<!-- 📈 Email Usage Overview -->
+<div class="card">
+  <div class="text-2xl font-bold mb-4">Usage Overview</div>
+
+  <div class="flex gap-2 justify-center mb-4">
+    <button 
+      *ngFor="let range of timeRanges"
+      class="p-button"
+      [class.p-button-outlined]="selectedRange !== range"
+      [class.p-button-primary]="selectedRange === range"
+      (click)="setRange(range)"
+    >
+      {{ range }}
+    </button>
+  </div>
+
+  <p-fluid class="grid grid-cols-12 gap-6">
+    <div class="col-span-12 xl:col-span-6">
+      <div class="card h-full">
+        <div class="text-lg font-semibold mb-2">Email In/Out ({{ selectedRange }})</div>
+        <p-chart type="bar" [data]="barData" [options]="barOptions" styleClass="w-full h-20rem"></p-chart>
+      </div>
+    </div>
+  </p-fluid>
+</div>
+
+<!-- 🔒 Blacklist IP Table -->
+<div class="card mt-6">
+  <p-table
+    #dtIPs
+    [value]="maliciousIPs"
+    dataKey="ip"
+    [rows]="10"
+    [paginator]="true"
+    [loading]="false"
+    [rowHover]="true"
+    [showGridlines]="true"
+    [globalFilterFields]="['address', 'info.isp', 'info.org', 'info.country']"
+    responsiveLayout="scroll"
+  >
+    <ng-template #caption>
+      <div class="flex justify-between items-center flex-column sm:flex-row">
+        <span class="text-lg font-semibold mb-2">Suspicious IPs</span>
+        <p-iconfield iconPosition="left" class="ml-auto">
+          <p-inputicon>
+            <i class="pi pi-search"></i>
+          </p-inputicon>
+          <input
+            pInputText
+            type="text"
+            (input)="onGlobalFilter(dtIPs, $event)"
+            placeholder="Search IPs or ISP..."
+            class="p-inputtext p-component"
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="count">Count <p-sortIcon field="count"></p-sortIcon></th>
+        <th pSortableColumn="ip">IP <p-sortIcon field="ip"></p-sortIcon></th>
+        <th pSortableColumn="lastSeen">Last Seen <p-sortIcon field="lastSeen"></p-sortIcon></th>
+        <th>Action</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-ip let-i="rowIndex">
+      <tr>
+        <td>{{ ip.count }}</td>
+        <td>
+          <span
+            pTooltip="ISP: {{ ip.info?.isp }}&#10;ORG: {{ ip.info?.org }}&#10;Country: {{ ip.info?.country }}"
+            tooltipPosition="top"
+          >
+            {{ ip.address }}
+          </span>
+        </td>
+        <td>{{ ip.lastSeen | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>
+          <p-button *ngIf="!ip.blacklisted" icon="pi pi-ban" label="Blacklist" styleClass="p-button-danger p-button-sm" (onClick)="blacklist(ip, i)"></p-button>
+          <p-button *ngIf="ip.blacklisted" icon="pi pi-unlock" label="Unblacklist" styleClass="p-button-success p-button-sm" (onClick)="unblacklist(ip, i)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4" class="text-center p-4">
+          <div class="flex flex-column align-items-center justify-content-center gap-3">
+            <i class="pi pi-search" style="font-size: 2rem"></i>
+            <span>No suspicious IPs found</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- 👥 Registered Users Table -->
+<div class="card mt-6">
+  <p-table
+    #dtUsers
+    [value]="registeredUsers"
+    dataKey="email"
+    [rows]="5"
+    [paginator]="true"
+    [rowHover]="true"
+    [showGridlines]="true"
+    [loading]="false"
+    [globalFilterFields]="['username', 'recoveryEmail']"
+    responsiveLayout="scroll"
+  >
+    <ng-template #caption>
+      <div class="flex justify-between items-center flex-column sm:flex-row">
+        <span class="text-lg font-semibold mb-2">Registered Users</span>
+        <p-iconfield iconPosition="left" class="ml-auto">
+          <p-inputicon>
+            <i class="pi pi-search"></i>
+          </p-inputicon>
+          <input
+            pInputText
+            type="text"
+            (input)="onGlobalFilter(dtUsers, $event)"
+            placeholder="Search users..."
+            class="p-inputtext p-component"
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <!-- Change field to 'username' since that's what we're sorting by -->
+        <th pSortableColumn="username">Email <p-sortIcon field="username"></p-sortIcon></th>
+        <th pSortableColumn="recoveryEmail">Recovery Email <p-sortIcon field="recoveryEmail"></p-sortIcon></th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-user>
+      <tr>
+        <td>{{ user.username }}&#64;deyvid.dev</td>
+        <td>{{ user.recoveryEmail }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center p-4">
+          <div class="flex flex-column align-items-center justify-content-center gap-3">
+            <i class="pi pi-users" style="font-size: 2rem"></i>
+            <span>No users found</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
