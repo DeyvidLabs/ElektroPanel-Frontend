@@ -150,11 +150,8 @@ export class Settings {
       this.showError('Please enter your password');
       return;
     }
-
     this.userService.deleteAccount(this.deletePassword).subscribe({
-      
       next: () => {
-        console.log(this.deletePassword);
         this.showSuccess('Check your email for account deletion confirmation');
         this.router.navigate(['/']);
       },

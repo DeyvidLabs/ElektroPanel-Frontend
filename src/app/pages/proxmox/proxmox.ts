@@ -194,7 +194,6 @@ fetchVMStorage(nodeName: string, vmid: number) {
         this.fetchNodeInfo(node.node);
       });
     }, this.delayUpdateInfo);
-    console.log(this.nodeInfoDelay)
   }
 
   // Fetch nodes from Proxmox

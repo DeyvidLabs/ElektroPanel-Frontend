@@ -11,6 +11,7 @@ import { ErrorComponent } from './pages/error/error';
 import { AdminComponent } from './pages/admin/admin';
 import { adminGuard } from './core/guards/admin-guard';
 import { AuthComponent } from './pages/auth/auth';
+import { Email } from './pages/email/email';
 // export const routes: Routes = [
 //   {
 //     path: '',
@@ -67,6 +68,7 @@ export const appRoutes: Routes = [
             { path: 'documentation', component: Documentation },
             { path: 'pages', loadChildren: () => import('./pages/pages.routes') },
             { path: 'proxmox', component: Proxmox },
+            { path: 'email', component: Email },
             { path: 'admin', component: AdminComponent, canActivate: [adminGuard]},
             { path: 'settings', loadComponent: () => import('./pages/settings/settings').then(m => m.Settings)},
         ]
