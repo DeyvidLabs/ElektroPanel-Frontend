@@ -1,189 +1,487 @@
 <app-configurator />
-<div class="card p-4 rounded-xl shadow-md">
-  <div class="text-center py-3">
-    <div class="items-center px-8 py-4 rounded-2xl">
-      <h1 class="text-3xl font-bold bg-clip-text text-primary">User Management</h1>
+<div class="card p-6 rounded-lg shadow-sm bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+  <!-- User Management Section -->
+  <div class="mb-8">
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">User Management</h1>
     </div>
-  </div>
-  
-    <p-table
-        #dt1
-        [value]="users"
-        dataKey="id"
-        [rows]="10"
-        [loading]="loading"
-        [rowHover]="true"
-        [showGridlines]="true"
-        [paginator]="true"
-        [globalFilterFields]="['name', 'email', 'status']"
-        responsiveLayout="scroll"
-    >
-    <ng-template #caption>
-        <div class="flex justify-between items-center flex-column sm:flex-row">
-            <button pButton label="Clear" class="p-button-outlined mb-2" icon="pi pi-filter-slash" (click)="clear(dt1)"></button>
-            <p-iconfield iconPosition="left" class="ml-auto">
-                <p-inputicon>
-                    <i class="pi pi-search"></i>
-                </p-inputicon>
-                <input pInputText type="text" (input)="onGlobalFilter(dt1, $event)" placeholder="Search keyword" class="p-inputtext p-component"/>
-            </p-iconfield>
-        </div>
-    </ng-template>
-    
-    <ng-template #header>
-        <tr>
-            <th pSortableColumn="name" style="min-width: 12rem">
-                <div class="flex justify-between items-center">
-                    Name
-                    <p-sortIcon field="name"></p-sortIcon>
-                    <p-columnFilter type="text" field="name" display="menu" placeholder="Search by name"></p-columnFilter>
-                </div>
-            </th>
-                
-            <th pSortableColumn="email" style="min-width: 16rem">
-                <div class="flex justify-between items-center">
-                    Email
-                    <p-sortIcon field="email"></p-sortIcon>
-                    <p-columnFilter type="text" field="email" display="menu" placeholder="Search by email"></p-columnFilter>
-                </div>
-            </th>
-                
-            <th pSortableColumn="createdAt" style="min-width: 12rem">
-                <div class="flex justify-between items-center">
-                    Date Created
-                    <p-sortIcon field="createdAt"></p-sortIcon>
-                    <p-columnFilter type="date" field="createdAt" display="menu" placeholder="Filter by date"></p-columnFilter>
-                </div>
-            </th>
-                
-            <th pSortableColumn="enabled" style="min-width: 10rem">
-                <div class="flex justify-between items-center">
-                    Status
-                    <p-sortIcon field="enabled"></p-sortIcon>
-                    <p-columnFilter field="enabled" matchMode="equals" display="menu">
-                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                        <p-dropdown [ngModel]="value" [options]="statusOptions" (onChange)="filter($event.value)"
-                                    placeholder="Select Status" [style]="{ 'min-width': '12rem' }">
-                        <ng-template let-option pTemplate="item">
-                            <p-tag [value]="option.label" [severity]="option.severity"></p-tag>
-                        </ng-template>
-                        </p-dropdown>
-                    </ng-template>
-                    </p-columnFilter>
-                </div>
-            </th>
-                
-            <th style="min-width: 6rem">
-                Actions
-            </th>
-        </tr>
-    </ng-template>
-    
-    <ng-template pTemplate="body" let-user>
-      <tr>
-        <td>{{ user.name }} {{ user.permission }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
-        <td>
-          <p-tag [value]="user.enabled ? 'Enabled' : 'Disabled'" 
-                 [severity]="user.enabled ? 'success' : 'danger'" (click)="toggleUserStatus(user)" class="cursor-pointer"></p-tag>
-        </td>
-        <td>
-          <p-button icon="pi pi-ellipsis-h" styleClass="p-button-text" (click)="openUserModal(user)"></p-button>
-        </td>
-      </tr>
-    </ng-template>
-    
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="5" class="text-center p-4">
-          <div class="flex flex-column align-items-center justify-content-center gap-3">
-            <i class="pi pi-search" style="font-size: 2rem"></i>
-            <span>No users found</span>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-    
-    <ng-template pTemplate="loadingbody">
-      <tr>
-        <td colspan="5" class="text-center p-4">
-          <div class="flex align-items-center justify-content-center gap-2">
-            <i class="pi pi-spinner pi-spin"></i>
-            <span>Loading users...</span>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
 
-<p-dialog
-  header="Manage User Permissions"
-  [(visible)]="displayModal"
-  [modal]="true"
-  [style]="{ width: '500px' }"
-  [closable]="true"
-  [dismissableMask]="true"
-  [breakpoints]="{ '960px': '90vw' }"
->
-  <div class="mb-4">
-    <label for="permissions" class="font-medium block mb-2">Permissions</label>
-    <p-multiSelect
-      id="permissions"
-      [options]="permissions"
-      [(ngModel)]="selectedPermissions"
-      optionLabel="name"
-      optionValue="id"
-      placeholder="Select permissions"
-      display="chip"
-      class="w-full"
-      appendTo="body"
-      [filter]="true"
-      (onFilter)="onMultiSelectFilter($event)"
-      [maxSelectedLabels]="9999"
-    >
-      <ng-template let-permission pTemplate="item">
-        <div [pTooltip]="permission.description" tooltipPosition="top">
-          {{ permission.name }}
-        </div>
+    <p-table #dt1 [value]="users" dataKey="id" [rows]="10" [loading]="loading" [rowHover]="true"
+      [showGridlines]="true" [paginator]="true" [globalFilterFields]="['name', 'email', 'status']"
+      responsiveLayout="scroll" styleClass="p-datatable-striped p-datatable-sm"
+      [paginator]="true" [rowsPerPageOptions]="[5,10,25,50]">
+      
+    <ng-template #caption>
+      <div class="flex justify-between items-center flex-column sm:flex-row">
+        <p-iconfield iconPosition="left" class="ml-auto">
+          <p-inputicon>
+            <i class="pi pi-search"></i>
+          </p-inputicon>
+          <input
+            pInputText
+            type="text"
+            (input)="onGlobalFilter(dt1, $event)"
+            placeholder="Search users..."
+            class="p-inputtext p-component"
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+      <ng-template #header>
+        <tr class="bg-gray-50 dark:bg-gray-700">
+          <th scope="col" pSortableColumn="name" class="p-3 text-left">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-600 dark:text-gray-300">Name</span>
+              <div class="flex items-center">
+                <p-sortIcon field="name"></p-sortIcon>
+                <p-columnFilter type="text" field="name" display="menu" class="ml-2"></p-columnFilter>
+              </div>
+            </div>
+          </th>
+
+          <th scope="col" pSortableColumn="email" class="p-3 text-left">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-600 dark:text-gray-300">Email</span>
+              <div class="flex items-center">
+                <p-sortIcon field="email"></p-sortIcon>
+                <p-columnFilter type="text" field="email" display="menu" class="ml-2"></p-columnFilter>
+              </div>
+            </div>
+          </th>
+
+          <th scope="col" pSortableColumn="createdAt" class="p-3 text-left">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-600 dark:text-gray-300">Date Created</span>
+              <div class="flex items-center">
+                <p-sortIcon field="createdAt"></p-sortIcon>
+                <p-columnFilter type="date" field="createdAt" display="menu" class="ml-2"></p-columnFilter>
+              </div>
+            </div>
+          </th>
+
+          <th scope="col" pSortableColumn="enabled" class="p-3 text-left">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-600 dark:text-gray-300">Status</span>
+              <div class="flex items-center">
+                <p-sortIcon field="enabled"></p-sortIcon>
+                <p-columnFilter field="enabled" matchMode="equals" display="menu" class="ml-2">
+                  <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                    <p-dropdown [ngModel]="value" [options]="statusOptions" (onChange)="filter($event.value)"
+                      placeholder="Select Status" [style]="{ 'min-width': '12rem' }">
+                      <ng-template let-option pTemplate="item">
+                        <p-tag [value]="option.label" [severity]="option.severity"></p-tag>
+                      </ng-template>
+                    </p-dropdown>
+                  </ng-template>
+                </p-columnFilter>
+              </div>
+            </div>
+          </th>
+
+          <th scope="col" class="p-3 text-left">
+            <span class="font-semibold text-gray-600 dark:text-gray-300">Actions</span>
+          </th>
+        </tr>
       </ng-template>
 
-    <ng-template let-empty="emptyFilterMessage" pTemplate="emptyfilter">
-      <div class="px-2 py-3 text-center">
-        <p class="font-bold">{{ empty }}</p>
-        <div class="flex flex-column gap-2">
-          <p-iftalabel>
-            <input
-              type="text"
-              pInputText
-              [(ngModel)]="newPermissionDescription"
-              placeholder="Enter permission description"
-              class="w-full p-inputtext p-component"
-            />
-            <label for="username">Description</label>
-          </p-iftalabel>
-          <p-button
-            label="Create '{{ filterText }}'"
-            icon="pi pi-plus"
-            class="mt-2"
-            size="small"
-            (click)="createAndSelectPermission()"
-            [disabled]="!filterText.trim() || !newPermissionDescription.trim()"
+      <ng-template pTemplate="body" let-user>
+        <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+          <td class="p-3">{{ user.name }}</td>
+          <td class="p-3">{{ user.email }}</td>
+          <td class="p-3">{{ user.createdAt | date: 'MMM d, y, HH:mm:ss' }}</td>
+          <td class="p-3">
+            <p-tag [value]="user.enabled ? 'Enabled' : 'Disabled'" 
+                   [severity]="user.enabled ? 'success' : 'danger'"
+                   (click)="toggleUserStatus(user)" 
+                   class="cursor-pointer px-3 py-1 rounded-full text-xs"></p-tag>
+          </td>
+          <td class="p-3">
+            <button pButton icon="pi pi-ellipsis-h" class="p-button-text p-button-sm" 
+                    (click)="openUserModal(user)"></button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="p-6 text-center">
+            <div class="flex flex-col items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+              <i class="pi pi-search text-2xl"></i>
+              <span class="text-lg">No users found</span>
+              <p class="text-sm">Try adjusting your search or filter criteria</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="loadingbody">
+        <tr>
+          <td colspan="5" class="p-6 text-center">
+            <div class="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+              <i class="pi pi-spinner pi-spin"></i>
+              <span>Loading users...</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- User Permissions Modal -->
+  <p-dialog 
+    header="Manage User Permissions" 
+    [(visible)]="displayModal" 
+    [modal]="true" 
+    [style]="{ width: '600px' }"
+    [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
+    [closable]="true"
+    [dismissableMask]="true"
+    styleClass="shadow-lg rounded-lg overflow-hidden"
+  >
+    <div *ngIf="selectedUser" class="space-y-4">
+      <!-- User Summary Card -->
+      <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">User Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Name</p>
+              <p class="font-medium break-words min-w-0 max-w-full" 
+                  style="word-break: break-word; overflow-wrap: break-word">
+                  {{ selectedUser.displayName || selectedUser.name || 'N/A' }}
+              </p>
+          </div>          
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Email</p>
+            <p class="font-medium">{{ selectedUser.email || 'N/A' }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Registration Date</p>
+            <p class="font-medium">{{ selectedUser.createdAt | date: 'MMM d, y, HH:mm:ss' }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Last Login</p>
+            <p class="font-medium">{{ selectedUser.lastLogin | date: 'MMM d, y, HH:mm:ss' }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Provider</p>
+            <p class="font-medium">{{ selectedUser.provider || 'Local' }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Status</p>
+            <p class="font-medium">
+              <span [class]="'p-tag ' + (selectedUser.enabled ? 'p-tag-success' : 'p-tag-danger')">
+                {{ selectedUser.enabled ? 'Active' : 'Inactive' }}
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Permissions Card -->
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Permissions</h3>
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Permissions
+            <p-multiSelect 
+              [options]="permissions" 
+              [(ngModel)]="selectedPermissions" 
+              optionLabel="name"
+              optionValue="id" 
+              placeholder="Select permissions" 
+              display="chip" 
+              class="w-full" 
+              appendTo="body" 
+              [filter]="true"
+              (onFilter)="onMultiSelectFilter($event)" 
+              [maxSelectedLabels]="3"
+            >
+            
+              <ng-template let-permission pTemplate="item">
+                <div [pTooltip]="permission.description" tooltipPosition="top" class="flex items-center gap-2">
+                  <span class="truncate">{{ permission.name }}</span>
+                </div>
+              </ng-template>
+
+              <ng-template let-empty="emptyFilterMessage" pTemplate="emptyfilter">
+                <div class="p-3 space-y-3">
+                  <p class="font-medium text-gray-700 dark:text-gray-300">{{ empty }}</p>
+                  <div class="space-y-2">
+                    <div class="p-field">
+                      <label for="permissionDesc" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                      <input 
+                        id="permissionDesc" 
+                        type="text" 
+                        pInputText 
+                        [(ngModel)]="newPermissionDescription"
+                        placeholder="Enter permission description" 
+                        class="w-full" 
+                      />
+                    </div>
+                    <p-button 
+                      label="Create '{{ filterText }}'" 
+                      icon="pi pi-plus" 
+                      class="w-full" 
+                      size="small"
+                      (click)="createAndSelectPermission()"
+                      [disabled]="!filterText.trim() || !newPermissionDescription.trim()"
+                    ></p-button>
+                  </div>
+                </div>
+              </ng-template>
+            </p-multiSelect>
+          </label>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div>
+          <p-button 
+            icon="pi pi-trash" 
+            class="p-button-text p-button-sm" 
+            (click)="deleteUser()"
+            severity="danger"
+            label="Delete User"
+            *ngIf="selectedUser && currentUser && selectedUser.email !== currentUser.email"
+          ></p-button>
+        </div>
+
+        <div class="flex gap-2">
+          <p-button 
+            label="Cancel" 
+            icon="pi pi-times" 
+            class="p-button-text p-button-sm" 
+            (click)="closeModal()"
+          ></p-button>
+          <p-button 
+            label="Save" 
+            icon="pi pi-check" 
+            class="p-button-sm" 
+            (click)="saveUserPermissions()"
           ></p-button>
         </div>
       </div>
-    </ng-template>
-  </p-multiSelect>
 
-  </div>
+    </div>
+  </p-dialog>
 
-  <div class="flex justify-end gap-2 mt-4">
-    <p-button label="Cancel" icon="pi pi-times" class="p-button-text" (click)="closeModal()"></p-button>
-    <p-button label="Save" icon="pi pi-check" (click)="saveUserPermissions()"></p-button>
-    <!-- <p-button icon="pi pi-trash" styleClass="p-button-text" (click)="deleteUser(user)" *ngIf="user.email !== currentUser.email"></p-button> -->
-    <p-button icon="pi pi-trash" styleClass="p-button-text" (click)="deleteUser()" *ngIf="selectedUser && currentUser && selectedUser.email !== currentUser.email"></p-button>
-  </div>
+  <!-- Activity Log Details Modal -->
+<p-dialog 
+    header="Activity Log Details" 
+    [(visible)]="displayDetailsModal" 
+    [modal]="true" 
+    [style]="{ width: '600px' }"
+    [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
+    [closable]="true"
+    [dismissableMask]="true"
+    styleClass="shadow-lg rounded-lg overflow-hidden"
+>
+    <div *ngIf="selectedLog" class="space-y-4">
+        <!-- Summary Card -->
+        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Summary</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">User</p>
+                    <p class="font-medium break-words min-w-0 max-w-full" 
+                       style="word-break: break-word; overflow-wrap: break-word">
+                        {{ selectedLog.actor.displayName || selectedLog.actor.id }}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Service</p>
+                    <p class="font-medium">{{ selectedLog.service }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Date</p>
+                    <p class="font-medium">{{ selectedLog.timestamp | date: 'MMM d, y, HH:mm:ss' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">IP Address</p>
+                    <p class="font-medium">{{ selectedLog.actor.ip || 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Details Accordion -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Technical Details</h3>
+            <p-accordion [multiple]="true">
+                <p-accordion-panel value="0">
+                    <p-accordion-header>Metadata</p-accordion-header>
+                    <p-accordion-content>
+                        <pre class="bg-gray-50 dark:bg-gray-700 p-3 rounded overflow-auto text-xs max-h-48">{{ selectedLog.metadata | json }}</pre>
+                    </p-accordion-content>
+                </p-accordion-panel>
+                <p-accordion-panel value="1">
+                    <p-accordion-header>Raw Data</p-accordion-header>
+                    <p-accordion-content>
+                        <pre class="bg-gray-50 dark:bg-gray-700 p-3 rounded overflow-auto text-xs max-h-48">{{ selectedLog | json }}</pre>
+                    </p-accordion-content>
+                </p-accordion-panel>
+            </p-accordion>       
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <p-button label="Close" icon="pi pi-times" class="p-button-sm" (click)="displayDetailsModal = false"></p-button>
+            <p-button label="Export" icon="pi pi-download" class="p-button-outlined p-button-sm"
+                (click)="exportLog(selectedLog)"></p-button>
+        </div>
+    </div>
 </p-dialog>
 
+  <!-- Activity Logs Section -->
+  <div>
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Activity Logs</h1>
+    </div>
 
+<p-table #dtLogs [value]="logs" dataKey="id" [rows]="10" [loading]="loading" [rowHover]="true"
+  [showGridlines]="true" [paginator]="true" [globalFilterFields]="['actor.displayName', 'service', 'action']"
+  responsiveLayout="scroll" styleClass="p-datatable-striped p-datatable-sm"
+  [paginator]="true" [rowsPerPageOptions]="[5,10,25,50]">
+
+      <ng-template #caption>
+      <div class="flex justify-between items-center flex-column sm:flex-row">
+        <p-iconfield iconPosition="left" class="ml-auto">
+          <p-inputicon>
+            <i class="pi pi-search"></i>
+          </p-inputicon>
+          <input
+            pInputText
+            type="text"
+            (input)="onGlobalFilter(dtLogs, $event)"
+            placeholder="Search logs..."
+            class="p-inputtext p-component"
+          />
+        </p-iconfield>
+      </div>
+    </ng-template>
+  
+    <ng-template #header>
+      <tr class="bg-gray-50 dark:bg-gray-700">
+        <th scope="col" pSortableColumn="actor.displayName" class="p-3 text-left">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-gray-600 dark:text-gray-300">User</span>
+            <div class="flex items-center">
+              <p-sortIcon field="actor.displayName"></p-sortIcon>
+              <p-columnFilter type="text" field="actor.displayName" display="menu" class="ml-2"></p-columnFilter>
+            </div>
+          </div>
+        </th>
+
+        <th scope="col" pSortableColumn="service" class="p-3 text-left">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-gray-600 dark:text-gray-300">Service</span>
+            <div class="flex items-center">
+              <p-sortIcon field="service"></p-sortIcon>
+              <p-columnFilter type="text" field="service" display="menu" class="ml-2"></p-columnFilter>
+            </div>
+          </div>
+        </th>
+
+        <!-- Action Column, Sortable on Timestamp -->
+        <th scope="col" pSortableColumn="timestamp" class="p-3 text-left">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-gray-600 dark:text-gray-300">Action</span>
+            <div class="flex items-center">
+              <p-sortIcon field="timestamp"></p-sortIcon>
+              <p-columnFilter type="date" field="timestamp" display="menu" class="ml-2"></p-columnFilter>
+            </div>
+          </div>
+        </th>
+
+        <th scope="col" class="p-3 text-left">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-gray-600 dark:text-gray-300">Details</span>
+          </div>
+        </th>
+      </tr>
+    </ng-template>
+
+  <ng-template pTemplate="body" let-log>
+    <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+      <td class="p-3">
+        <p-tag 
+          [value]="log.actor.displayName || log.actor.id" 
+          class="cursor-pointer hover:bg-white hover:text-black"
+          severity="secondary"
+          (click)="onUserTagClick(log.actor.id)">
+        </p-tag>
+      </td>
+      <td class="p-3">
+        <i class="pi align-middle mr-2" [ngClass]="serviceIconMap[log.service] || 'pi-question-circle'"></i>
+        <span class="align-middle">{{ log.service | titlecase }}</span>
+      </td>
+      <td class="p-3">
+        <ng-container [ngSwitch]="log.action">
+          <ng-container *ngSwitchCase="'ip_blacklisted'">
+            Blacklisted 
+            <clickable-tag [ipAddress]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'ip_unblacklisted'">
+            Unblacklisted 
+            <clickable-tag [ipAddress]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'user_display_name_changed'">
+            Display name changed from 
+            <clickable-tag [target]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag> to 
+            <clickable-tag [actor]="log.actor" type="success" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'user_email_changed'">
+            Email changed from 
+            <clickable-tag [oldEmail]="log.metadata" type="info" (click)="handleTagClick($event)"></clickable-tag> to 
+            <clickable-tag [newEmail]="log.metadata" type="success" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'user_password_changed'">
+            Changed password
+          </ng-container>
+          <ng-container *ngSwitchCase="'vm_started'">
+            Started VM <clickable-tag [vm]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag> on node 
+            <clickable-tag [node]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'vm_stopped'">
+            Stopped VM <clickable-tag [vm]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag> on node 
+            <clickable-tag [node]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'vm_shutdown'">
+            Shutdown VM <clickable-tag [vm]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag> on node 
+            <clickable-tag [node]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+        </ng-container>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ log.timestamp | date: 'MMM d, y, HH:mm:ss' }}</p>
+      </td>
+      <td class="p-3">
+        <button pButton icon="pi pi-eye" label="View" size="small" class="p-button-text p-button-sm"
+          (click)="viewLogDetails(log)"></button>
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="5" class="p-6 text-center">
+        <div class="flex flex-col items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+          <i class="pi pi-search text-2xl"></i>
+          <span class="text-lg">No logs found</span>
+          <p class="text-sm">Try adjusting your search or filter criteria</p>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="loadingbody">
+    <tr>
+      <td colspan="5" class="p-6 text-center">
+        <div class="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+          <i class="pi pi-spinner pi-spin"></i>
+          <span>Loading logs...</span>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
+  </div>
 </div>

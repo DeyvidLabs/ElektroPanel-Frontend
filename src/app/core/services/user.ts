@@ -49,7 +49,7 @@ export class UserService {
 
   adminDeleteUser(email: string): Observable<any> {
     return this.http.delete('/users/delete', {
-      body: { email: email }
+       email: email
     })
   }  
 
