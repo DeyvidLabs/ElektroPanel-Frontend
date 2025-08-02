@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, ComponentFactoryResolver, OnInit, Sanitizer, ViewChild, ViewContainerRef } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { AppConfigurator } from '../../shared/navigation/parts/app.configurator';
@@ -8,6 +8,7 @@ import { Table, TableModule } from 'primeng/table';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../core/services/user';
+import { LoggingService } from '../../core/services/log';
 import { FormsModule } from '@angular/forms';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -15,6 +16,12 @@ import { DropdownModule } from 'primeng/dropdown';
 import { ToastService } from '../../shared/toasts';
 import { IftaLabelModule } from 'primeng/iftalabel';
 import { TooltipModule } from 'primeng/tooltip';
+import { InputTextModule } from 'primeng/inputtext';
+import { CardModule } from 'primeng/card';
+import { AccordionModule } from 'primeng/accordion';
+import { CapitalizeFirstWordPipe } from '../../shared/capitalize';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ClickableTagComponent } from '../../shared/clickable-tag';
 
 @Component({
   selector: 'app-admin',
@@ -35,10 +42,23 @@ import { TooltipModule } from 'primeng/tooltip';
     InputIconModule,
     DropdownModule,
     IftaLabelModule,
-    TooltipModule
+    TooltipModule,
+    InputTextModule,
+    CardModule,
+    AccordionModule,
+    CapitalizeFirstWordPipe,
+    ClickableTagComponent,
   ],
 })
 export class AdminComponent implements OnInit {
+
+  constructor(
+    private userService: UserService, 
+    private toastService: ToastService, 
+    private loggingService: LoggingService,
+  ) {}
+
+
   users: any[] = [];
   permissions: any[] = [];
   selectedPermissions: any[] = [];
@@ -52,17 +72,83 @@ export class AdminComponent implements OnInit {
     { label: 'Enabled', value: true, severity: 'success' },
     { label: 'Disabled', value: false, severity: 'danger' }
   ];
+
+  serviceIconMap: Record<string, string> = {
+    email: 'pi-envelope',
+    account: 'pi-user',
+    proxmox: 'pi-server',
+    cloudflare: 'pi-cloud',
+    torrent: 'pi-download',
+    auth: 'pi-key',
+    nginx: 'pi-cog',
+    'game-server': 'pi-box'
+  };
+
+
+  
   loading: unknown;
   newPermissionDescription: string = '';
   currentUser = {
     email: '',
   };
 
-  constructor(private userService: UserService, private toastService: ToastService) {}
+  logs: any[] = [];
+  displayDetailsModal = false;
+  selectedLog: any = null;
 
-  clear(table: Table) {
-    table.clear();
+  viewLogDetails(log: any) {
+    this.selectedLog = log;
+    this.displayDetailsModal = true;
   }
+  // Add this to handle tag clicks
+  onUserTagClick(id: string): void {
+    const user = this.users.find(u => u.id === id);
+    this.openUserModal(user);
+  }
+
+  handleTagClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    console.log("t1" + target);
+    if (target.classList.contains('p-tag-clickable')) {
+      console.log("target is " +  target);
+      const userId = target.getAttribute('data-user-id');
+      if (userId) {
+        this.onUserTagClick(userId);
+      }
+
+      const vmId = target.getAttribute('data-vm-id');
+      if (vmId) {
+        this.logme(vmId);
+      }
+
+      const nodeName = target.getAttribute('data-node-name');
+      if (nodeName) {
+        this.logme(nodeName);
+      }
+    }
+  }
+
+  logme(id: string){
+    console.log('Clicked tag with ID:', id);
+    // Implement your logic here, e.g., navigate to a user profile or VM details
+    // this.router.navigate(['/user', id]);
+    // Or emit an event to notify parent component
+    // this.tagClicked.emit(id);
+  }
+
+  exportLog(log: any) {
+    // Implement export functionality
+    const dataStr = JSON.stringify(log, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `log-${log.id}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  }
+
   onGlobalFilter(table: Table, event: Event) {
     table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
@@ -76,13 +162,13 @@ export class AdminComponent implements OnInit {
     this.loadUsers();
     this.loadPermissions();
     this.loadUserInfo();
+    this.loadLogs();
   }
 
   loadUserInfo(){
     this.userService.getUserInfo().subscribe({
       next: (decoded: any) => {
         this.currentUser.email = decoded?.email || '';
-
       },
       error: () => this.toastService.error('Error', 'Could not get user info')
     });
@@ -111,9 +197,23 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  loadLogs() {
+    this.loggingService.getLogs().subscribe({
+      next: (rawLogs: any[]) => {
+          this.logs = rawLogs.map(log => ({
+            ...log,
+            actorDisplay: log.actor?.displayName || log.actor?.id || '',
+            // actionText: this.formatAction(log)
+          }));
+      },
+      error: (err: any) => {
+        console.error('Failed to load logs', err);
+      }
+    });
+  }
+
   openUserModal(user: any): void {
     this.selectedUser = user;
-
     // Ensure selectedPermissions only includes IDs that exist in permissions[]
     const userPermissionIds = (user.permissions || []).map((p: any) =>
       typeof p === 'string' ? p : p.id
