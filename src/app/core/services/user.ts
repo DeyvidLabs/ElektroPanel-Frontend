@@ -43,7 +43,7 @@ export class UserService {
 
   deleteAccount(deletePassword: string): Observable<any> {
     return this.http.delete('/users/delete-email', {
-      body: { password: deletePassword }
+       password: deletePassword
     })
   }  
 

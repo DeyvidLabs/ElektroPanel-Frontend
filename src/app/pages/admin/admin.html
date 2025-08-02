@@ -91,10 +91,17 @@
           <td class="p-3">{{ user.email }}</td>
           <td class="p-3">{{ user.createdAt | date: 'MMM d, y, HH:mm:ss' }}</td>
           <td class="p-3">
-            <p-tag [value]="user.enabled ? 'Enabled' : 'Disabled'" 
-                   [severity]="user.enabled ? 'success' : 'danger'"
-                   (click)="toggleUserStatus(user)" 
-                   class="cursor-pointer px-3 py-1 rounded-full text-xs"></p-tag>
+          <p-tag
+            [value]="user.enabled ? 'Enabled' : 'Disabled'"
+            [severity]="user.enabled ? 'success' : 'danger'"
+            (click)="user.email !== currentUser.email && toggleUserStatus(user)"
+            [ngClass]="{
+              'cursor-pointer': user.email !== currentUser.email,
+              'pointer-events-none opacity-50': user.email === currentUser.email
+            }"
+            class="px-3 py-1 rounded-full text-xs"
+          ></p-tag>
+
           </td>
           <td class="p-3">
             <button pButton icon="pi pi-ellipsis-h" class="p-button-text p-button-sm" 
@@ -382,7 +389,6 @@
           </div>
         </th>
 
-        <!-- Action Column, Sortable on Timestamp -->
         <th scope="col" pSortableColumn="timestamp" class="p-3 text-left">
           <div class="flex items-center justify-between">
             <span class="font-semibold text-gray-600 dark:text-gray-300">Action</span>

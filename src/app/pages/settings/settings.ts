@@ -64,7 +64,6 @@ export class Settings {
       },
       error: () => this.showError('Failed to update email')
     });
-
     this.emailControl.valueChanges.pipe(debounceTime(500)).subscribe((email) => {
       this.emailInUse = false;
 
@@ -110,7 +109,14 @@ export class Settings {
         this.showSuccess(`An email was sent to ${this.newEmail}`);
         this.newEmail = '';
       },
-      error: () => this.showError('Failed to update email')
+      error: (e) => {
+        if(e.status === 400){
+          this.showError(e.error.message);
+          return;
+        }
+        this.showError('Failed to update email');
+      }
+        // this.showError('Failed to update email')
     });
   }
 
