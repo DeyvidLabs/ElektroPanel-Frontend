@@ -36,19 +36,21 @@
   </div>
 
   <!-- Email -->
-  <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-6 mb-6">
+  <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-6 mb-6" *ngIf="!currentUser.google">
     <h3 class="text-lg font-bold mb-4" style="color: var(--color-secondary-400);">Email Address</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm text-gray-400 mb-1">Current Email</label>
-        <input type="text" pInputText readonly [(ngModel)]="currentUser.email"
-          class="w-full bg-[#0d0d0d] border border-gray-700 text-gray-300 rounded-md" />
+        <label class="block text-sm text-gray-400 mb-1">Current Email
+          <input type="text" pInputText readonly [(ngModel)]="currentUser.email"
+            class="w-full bg-[#0d0d0d] border border-gray-700 text-gray-300 rounded-md" />
+        </label>
       </div>
       <div>
-        <label class="block text-sm text-gray-400 mb-1">New Email</label>
-        <input type="email" pInputText [formControl]="emailControl"
-          class="w-full bg-[#0d0d0d] border border-gray-700 text-white rounded-md focus:ring"
-          style="--tw-ring-color: var(--color-secondary-300);" />
+        <label class="block text-sm text-gray-400 mb-1">New Email
+          <input type="email" pInputText [formControl]="emailControl"
+            class="w-full bg-[#0d0d0d] border border-gray-700 text-white rounded-md focus:ring"
+            style="--tw-ring-color: var(--color-secondary-300);" />
+        </label>
         <small id="email-error" class="text-red-400" *ngIf="emailInUse">Email address already in use.</small>
       </div>
     </div>

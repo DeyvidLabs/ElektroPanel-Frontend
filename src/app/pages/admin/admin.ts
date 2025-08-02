@@ -46,7 +46,6 @@ import { ClickableTagComponent } from '../../shared/clickable-tag';
     InputTextModule,
     CardModule,
     AccordionModule,
-    CapitalizeFirstWordPipe,
     ClickableTagComponent,
   ],
 })
