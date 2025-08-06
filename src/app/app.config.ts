@@ -5,8 +5,20 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { provideSocketIo, SocketIoConfig } from 'ngx-socket-io';
 
+// app.config.ts
+const socketConfig = {
+  url: 'https://panel.deyvid.dev', // Your domain
+  options: {
+    path: '/api/socket.io',       // Must match NestJS path
+    transports: ['websocket'],     // Force WebSocket transport
+    secure: true,                  // Required for HTTPS
+    autoConnect: true,             // Connect immediately
+    withCredentials: true          // Send cookies if needed
+  }
+};
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -15,6 +27,9 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideAnimationsAsync(),
     providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } } }),
-    MessageService
+    provideSocketIo(socketConfig),
+    MessageService,
+    ConfirmationService
+    
   ]
 };

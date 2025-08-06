@@ -34,6 +34,10 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
         {{newEmail.newEmail}}
       </a>
 
+      <a *ngIf="torrent" class="p-tag p-tag-{{type}} p-tag-clickable cursor-pointer" [attr.data-torrent-name]="torrent.target.name" (click)="handleClick(torrent)">
+        {{torrent.metadata.name}} ( {{torrent.metadata.size}} )
+      </a>
+
     `
 
 })
@@ -45,6 +49,7 @@ export class ClickableTagComponent {
   @Input() ipAddress: any;
   @Input() oldEmail: any;
   @Input() newEmail: any;
+  @Input() torrent: any;
   @Input() type: 'info' | 'success' = 'info';
   @Output() tagClicked = new EventEmitter<any>();
 
