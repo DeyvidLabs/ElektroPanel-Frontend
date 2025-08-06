@@ -1,0 +1,369 @@
+<p-confirmDialog></p-confirmDialog>
+
+<app-configurator />
+<div class="card p-6 rounded-lg shadow-sm bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+  <!-- Header -->
+  <div class="text-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Torrent Management</h1>
+  </div>
+
+  <!-- Add Torrent Section -->
+  <div class="mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="md:col-span-2">
+        <p-inputGroup class="relative">
+          <p-inputGroupAddon class="bg-gray-100 dark:bg-gray-700 border-r border-gray-200 dark:border-gray-600">
+            <i class="pi pi-link text-gray-500 dark:text-gray-300"></i>
+          </p-inputGroupAddon>
+          <input
+            type="text"
+            pInputText
+            [formControl]="magnetControl"
+            placeholder="magnet:?xt=urn:btih:..."
+            (keyup.enter)="addMagnet()"
+            class="w-full pl-4 pr-12"
+            [ngClass]="{'p-invalid': magnetControl.invalid && magnetControl.touched}"
+          />
+          <!-- Clear button -->
+          <button
+            *ngIf="magnetControl.value"
+            (click)="magnetControl.reset()"
+            class="cursor-pointer absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+            aria-label="Clear input"
+          >
+            <i class="pi pi-times text-gray-500 dark:text-gray-300 text-sm"></i>
+          </button>
+        </p-inputGroup>
+        
+        <!-- Error message -->
+        <small *ngIf="magnetControl.invalid && magnetControl.touched" class="p-error block mt-1 ml-2 block text-red-400">
+          {{ magnetLinkError }}
+        </small>
+        
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-2">
+          Example: magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10
+        </p>
+
+        <!-- Download Directory Input -->
+        <div class="mt-4">
+          <label for="downloadDir" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Download Directory</label>
+          <p-inputGroup>
+            <p-inputGroupAddon class="bg-gray-100 dark:bg-gray-700 border-r border-gray-200 dark:border-gray-600">
+              <i class="pi pi-folder text-gray-500 dark:text-gray-300"></i>
+            </p-inputGroupAddon>
+            <input
+              id="downloadDir"
+              type="text"
+              pInputText
+              [(ngModel)]="downloadDir"
+              placeholder="Enter download directory"
+              class="w-full"
+            />
+          </p-inputGroup>
+          <small class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-2">
+            Default: /media/torrents
+          </small>
+        </div>
+      </div>
+      <div class="flex gap-2 justify-end items-start">
+        <button 
+          pButton 
+          label="Add Torrent" 
+          icon="pi pi-plus" 
+          (click)="addMagnet()" 
+          [disabled]="magnetControl.invalid || loading"
+          [loading]="loading"
+          class="h-full min-h-[3rem]"
+        ></button>
+      </div>
+    </div>
+  </div>
+  <!-- Bulk Actions -->
+  <div class="mb-4 flex gap-2" *ngIf="selectedTorrents.length > 0">
+    <button
+      pButton
+      label="Start Selected"
+      icon="pi pi-play"
+      class="p-button-sm p-button-success"
+      (click)="resumeSelectedTorrents()"
+    ></button>
+    <button
+      pButton
+      label="Pause Selected"
+      icon="pi pi-pause"
+      class="p-button-sm p-button-warning"
+      (click)="pauseSelectedTorrents()"
+    ></button>
+    <button
+      pButton
+      label="Remove Selected"
+      icon="pi pi-trash"
+      class="p-button-sm p-button-danger"
+      (click)="removeSelectedTorrents()"
+    ></button>
+    <button
+      pButton
+      label="Unselect All"
+      icon="pi pi-list-check"
+      class="p-button-sm p-button-info"
+      (click)="unselectAllTorrents()"
+    ></button>    
+    <span class="ml-2 text-sm text-gray-600 dark:text-gray-300 flex items-center">
+      {{ selectedTorrents.length }} selected
+    </span>
+  </div>
+
+  <!-- Torrent Table -->
+<p-table
+    #dtTorrents
+    [value]="torrents"
+    dataKey="id"
+    [(selection)]="selectedTorrents"
+    [rows]="10"
+    [loading]="loading"
+    [rowHover]="true"
+    [showGridlines]="true"
+    [paginator]="true"
+    [globalFilterFields]="['name', 'status']"
+    [rowsPerPageOptions]="[5, 10, 25, 50]"
+    responsiveLayout="responsiveLayout"
+    breakpoint="768px"
+    styleClass="p-datatable-striped p-datatable-sm p-datatable-no-animation"
+>
+    <!-- Caption remains the same -->
+  <ng-template #caption>
+    <div class="flex justify-between items-center flex-column sm:flex-row">
+      <p-iconfield iconPosition="left" class="ml-auto relative w-full max-w-md">
+        <p-inputicon>
+          <i class="pi pi-search"></i>
+        </p-inputicon>
+        <input
+          pInputText
+          type="text"
+          [(ngModel)]="searchText"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Search torrents..."
+          class="p-inputtext p-component w-full pl-10 pr-10" />
+        
+        <!-- Improved clear button -->
+        <button 
+          *ngIf="searchText" 
+          (click)="clearSearch()" 
+          class="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none"
+          aria-label="Clear search"
+        >
+          <i class="pi pi-times text-gray-500 dark:text-gray-300"></i>
+        </button>
+      </p-iconfield>
+    </div>
+  </ng-template>
+
+
+    <!-- Header remains the same -->
+    <ng-template pTemplate="header">
+      <tr class="bg-gray-50 dark:bg-gray-700">
+        <th style="width: 3rem">
+          <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+        </th>
+        <th pSortableColumn="name" class="p-3 text-left">
+          <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-600 dark:text-gray-300">Name</span>
+              <div class="flex items-center">
+                <p-sortIcon field="name"></p-sortIcon>
+              </div>
+          </div>
+        </th>
+        <th pSortableColumn="totalSizeRaw"lass="p-3 text-left">
+          <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-600 dark:text-gray-300">Size</span>
+              <div class="flex items-center">
+                <p-sortIcon field="totalSizeRaw"> </p-sortIcon>
+              </div>
+          </div>
+        </th>
+        <th pSortableColumn="progress" class="p-3 text-left">
+          <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-600 dark:text-gray-300">Progress</span>
+              <div class="flex items-center">
+                <p-sortIcon field="progress"></p-sortIcon>
+              </div>
+          </div>
+        </th>
+        <th pSortableColumn="rateDownload" class="p-3 text-left">
+          <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-600 dark:text-gray-300">Download</span>
+              <div class="flex items-center">
+                <p-sortIcon field="rateDownload"></p-sortIcon>
+              </div>
+          </div>
+        </th>
+        <th pSortableColumn="rateUpload" class="p-3 text-left">
+          <div class="flex items-center justify-between">
+              <span class="font-semibold text-gray-600 dark:text-gray-300">Upload</span>
+              <div class="flex items-center">
+                <p-sortIcon field="rateUpload"></p-sortIcon>
+              </div>
+          </div>
+        </th>
+        <th pSortableColumn="status" class="p-3 text-left">
+          <span class="font-semibold text-gray-600 dark:text-gray-300">Status</span>
+          <p-sortIcon field="status" />
+        </th>
+        <th class="p-3 text-left">Actions</th>
+      </tr>
+    </ng-template>
+
+    <!-- Modified body template with trackBy -->
+    <ng-template pTemplate="body" let-torrent let-rowIndex="rowIndex">
+      <tr [attr.data-id]="torrent.id" 
+          class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        <td>
+          <p-tableCheckbox [value]="torrent"></p-tableCheckbox>
+        </td>
+        <td class="p-3">
+          {{ torrent.name }}
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ torrent.dateAdded * 1000 | date: 'MMM d, y, HH:mm:ss' }}</p>
+          <span class="text-sm text-gray-500 dark:text-gray-400">{{ torrent.addedBy }}</span>
+        </td>
+          
+        <td class="p-3">{{ torrent.totalSize }}</td>
+        <td class="p-3 w-40">
+          <p-progressBar [value]="torrent.percentDone" [showValue]="false"></p-progressBar>
+          <div class="text-sm text-center mt-1 text-gray-700 dark:text-gray-300">
+            {{ torrent.percentDone }}%
+          </div>
+        </td>
+        <td class="p-3">{{ torrent.rateDownload | speed }}</td>
+        <td class="p-3">{{ torrent.rateUpload | speed }}</td>
+        <td class="p-3">
+          <p-tag 
+            [value]="getStatusString(torrent.status)" 
+            [severity]="getStatusSeverity(torrent.status)" 
+            class="text-sm" 
+          />
+        </td>
+        <td class="p-3">
+          <div class="flex gap-2">
+            <button
+              pButton
+              icon="pi pi-pause"
+              class="p-button-sm p-button-rounded p-button-secondary"
+              (click)="pauseTorrent(torrent)"
+              *ngIf="torrent.status === 4"
+              [disabled]="loading"
+            ></button>
+            <button
+              pButton
+              icon="pi pi-play"
+              class="p-button-sm p-button-rounded p-button-success"
+              (click)="resumeTorrent(torrent)"
+              *ngIf="torrent.status === 0"
+              [disabled]="loading"
+            ></button>
+            <button
+              pButton
+              icon="pi pi-trash"
+              class="p-button-sm p-button-rounded p-button-danger"
+              (click)="removeTorrent(torrent)"
+              [disabled]="loading"
+            ></button>
+            <button
+              pButton
+              icon="pi pi-folder-open"
+              class="p-button-sm p-button-rounded p-button-help"
+              (click)="showLocationDialog(torrent)"
+              [disabled]="loading"
+              pTooltip="Change download location"
+              tooltipPosition="top"
+            ></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- Empty and loading templates remain the same -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" class="p-6 text-center">
+          <div class="flex flex-col items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+            <i class="pi pi-folder-open text-2xl"></i>
+            <span class="text-lg">No torrents found</span>
+            <p class="text-sm">Try adding one using a magnet or file</p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="loadingbody">
+      <tr>
+        <td colspan="8" class="p-6 text-center">
+          <div class="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+            <i class="pi pi-spinner pi-spin"></i>
+            <span>Loading torrents...</span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+</p-table>
+<!-- Location Change Dialog -->
+<p-dialog 
+  header="Change Download Location" 
+  [(visible)]="locationDialogVisible" 
+  [modal]="true"
+  [style]="{ width: '600px' }"
+  [breakpoints]="{ '960px': '90vw', '640px': '95vw' }"
+  [closable]="true"
+  [dismissableMask]="true"
+  styleClass="shadow-lg rounded-lg overflow-hidden"
+>
+  <div class="grid grid-cols-1 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Location
+        <p-inputGroup class="mb-4">
+          <p-inputGroupAddon>
+            <i class="pi pi-folder"></i>
+          </p-inputGroupAddon>
+          <input pInputText [value]="selectedTorrentLocation" readonly />
+        </p-inputGroup>
+      </label>
+    </div>
+    
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Location
+        <p-inputGroup>
+          <p-inputGroupAddon>
+            <i class="pi pi-folder-open"></i>
+          </p-inputGroupAddon>
+
+        <input 
+          pInputText 
+          [(ngModel)]="newTorrentLocation" 
+          placeholder="Enter new download location"
+        />
+      </p-inputGroup>
+      <small class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-2">
+        Example: /media/torrents/Film
+      </small>
+      </label>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <button 
+      pButton 
+      label="Cancel" 
+      icon="pi pi-times" 
+      (click)="locationDialogVisible = false" 
+      class="p-button-text"
+    ></button>
+    <button 
+      pButton 
+      label="Change Location" 
+      icon="pi pi-check" 
+      (click)="changeTorrentLocation()" 
+      [disabled]="!newTorrentLocation"
+      class="p-button-success"
+    ></button>
+  </ng-template>
+</p-dialog>
+</div>

@@ -416,6 +416,8 @@
           severity="secondary"
           (click)="onUserTagClick(log.actor.id)">
         </p-tag>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ log.actor.ip }}</p>
+
       </td>
       <td class="p-3">
         <i class="pi align-middle mr-2" [ngClass]="serviceIconMap[log.service] || 'pi-question-circle'"></i>
@@ -423,14 +425,7 @@
       </td>
       <td class="p-3">
         <ng-container [ngSwitch]="log.action">
-          <ng-container *ngSwitchCase="'ip_blacklisted'">
-            Blacklisted 
-            <clickable-tag [ipAddress]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
-          </ng-container>
-          <ng-container *ngSwitchCase="'ip_unblacklisted'">
-            Unblacklisted 
-            <clickable-tag [ipAddress]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
-          </ng-container>
+          <!-- USER -->
           <ng-container *ngSwitchCase="'user_display_name_changed'">
             Display name changed from 
             <clickable-tag [target]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag> to 
@@ -444,6 +439,20 @@
           <ng-container *ngSwitchCase="'user_password_changed'">
             Changed password
           </ng-container>
+
+
+          <!-- EMAILS -->
+          <ng-container *ngSwitchCase="'ip_blacklisted'">
+            Blacklisted 
+            <clickable-tag [ipAddress]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'ip_unblacklisted'">
+            Unblacklisted 
+            <clickable-tag [ipAddress]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+
+
+          <!-- VMS -->
           <ng-container *ngSwitchCase="'vm_started'">
             Started VM <clickable-tag [vm]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag> on node 
             <clickable-tag [node]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
@@ -456,6 +465,21 @@
             Shutdown VM <clickable-tag [vm]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag> on node 
             <clickable-tag [node]="log.target" type="info" (click)="handleTagClick($event)"></clickable-tag>
           </ng-container>
+
+
+          <!-- TORRENTS -->
+          <ng-container *ngSwitchCase="'torrent_added'">
+            Added torrent <clickable-tag [torrent]="log" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'torrent_deleted'">
+            Deleted torrent <clickable-tag [torrent]="log" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'torrent_started'">
+            Started torrent <clickable-tag [torrent]="log" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>
+          <ng-container *ngSwitchCase="'torrent_paused'">
+            Paused torrent <clickable-tag [torrent]="log" type="info" (click)="handleTagClick($event)"></clickable-tag>
+          </ng-container>          
         </ng-container>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ log.timestamp | date: 'MMM d, y, HH:mm:ss' }}</p>
       </td>

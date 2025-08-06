@@ -1,5 +1,5 @@
 import { Component, ComponentFactoryResolver, OnInit, Sanitizer, ViewChild, ViewContainerRef } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { AppConfigurator } from '../../shared/navigation/parts/app.configurator';
 import { DialogModule } from 'primeng/dialog';
@@ -55,6 +55,8 @@ export class AdminComponent implements OnInit {
     private userService: UserService, 
     private toastService: ToastService, 
     private loggingService: LoggingService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
 
@@ -77,7 +79,7 @@ export class AdminComponent implements OnInit {
     account: 'pi-user',
     proxmox: 'pi-server',
     cloudflare: 'pi-cloud',
-    torrent: 'pi-download',
+    torrents: 'pi-download',
     auth: 'pi-key',
     nginx: 'pi-cog',
     'game-server': 'pi-box'
@@ -107,9 +109,7 @@ export class AdminComponent implements OnInit {
 
   handleTagClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    console.log("t1" + target);
     if (target.classList.contains('p-tag-clickable')) {
-      console.log("target is " +  target);
       const userId = target.getAttribute('data-user-id');
       if (userId) {
         this.onUserTagClick(userId);
@@ -124,6 +124,11 @@ export class AdminComponent implements OnInit {
       if (nodeName) {
         this.logme(nodeName);
       }
+
+      const torrentName = target.getAttribute('data-torrent-name')
+      if(torrentName){
+        this.searchTorrent(torrentName);
+      }
     }
   }
 
@@ -133,6 +138,10 @@ export class AdminComponent implements OnInit {
     // this.router.navigate(['/user', id]);
     // Or emit an event to notify parent component
     // this.tagClicked.emit(id);
+  }
+
+  searchTorrent(name: string){
+    this.router.navigate(['/torrents'], { queryParams: { search: name } });
   }
 
   exportLog(log: any) {
