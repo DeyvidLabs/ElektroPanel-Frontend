@@ -66,7 +66,6 @@ export class AppMenu {
                         label: 'Features',
                         items: [
                             { label: 'Proxmox', icon: 'pi pi-fw pi-server', routerLink: ['/proxmox'], permission: "proxmox_read" },
-                            { label: 'Email', icon: 'pi pi-fw pi-envelope', routerLink: ['/email'], permission: "email_read" },
                             { label: 'Torrents', icon: 'pi pi-fw pi-download', routerLink: ['/torrents'], permission: "torrents_manage" },
                             { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', routerLink: ['/uikit/formlayout'] },
                             { label: 'Input', icon: 'pi pi-fw pi-check-square', routerLink: ['/uikit/input'] },
