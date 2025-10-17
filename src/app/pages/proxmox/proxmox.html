@@ -168,8 +168,8 @@
                 <i class="pi pi-file mr-2"></i> Disk Space
               </span>
               <span class="text-quaternary-300">
-                {{ (vm.diskUsed / 1024 / 1024 / 1024 | number: '1.1-1') || 0 }}GB / 
-                {{ (vm.diskTotal / 1024 / 1024 / 1024 | number: '1.1-1') || 0 }}GB
+                {{ ((vm.diskUsed || 0) / 1024 / 1024 / 1024 | number: '1.1-1') || 0 }}GB / 
+                {{ ((vm.diskTotal || 0) / 1024 / 1024 / 1024 | number: '1.1-1') || 0 }}GB
               </span>
             </div>
             <p-progressBar 
