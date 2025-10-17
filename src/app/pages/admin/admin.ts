@@ -117,12 +117,12 @@ export class AdminComponent implements OnInit {
 
       const vmId = target.getAttribute('data-vm-id');
       if (vmId) {
-        this.logme(vmId);
+        this.showVM(vmId);
       }
 
       const nodeName = target.getAttribute('data-node-name');
       if (nodeName) {
-        this.logme(nodeName);
+        this.showNode(nodeName);
       }
 
       const torrentName = target.getAttribute('data-torrent-name')
@@ -139,6 +139,15 @@ export class AdminComponent implements OnInit {
     // Or emit an event to notify parent component
     // this.tagClicked.emit(id);
   }
+
+  showNode(nodeName: string){
+    this.router.navigate(['/proxmox'], { queryParams: { node: nodeName } });
+  }
+
+  showVM(vmId: string){
+    this.router.navigate(['/proxmox'], { queryParams: { vm: vmId } });
+  }
+
 
   searchTorrent(name: string){
     this.router.navigate(['/torrents'], { queryParams: { search: name } });

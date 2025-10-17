@@ -1,6 +1,6 @@
 // pages/home/home.ts
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ProxmoxService } from './service';
 import { ToastService } from '../../shared/toasts';
 import { CommonModule } from '@angular/common';
@@ -11,6 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
+import { NodeDTO, VMDTO } from './proxmox.interface';
 
 @Component({
   selector: 'app-proxmox',
@@ -19,41 +20,116 @@ import { ToastModule } from 'primeng/toast';
   templateUrl: './proxmox.html',
   styleUrls: ['./proxmox.css']
 })
-export class Proxmox {
+export class Proxmox implements OnInit {
 
-  nodes: any[] = [];
-  vms: { [key: string]: any } = {};
-  nodeInfo: { [key: string]: any } = {};
-  vmInfoDelay: { [key: string]: any } = {};
+  nodes: NodeDTO[] = [];
+  vms: { [key: string]: VMDTO[] } = {};
+  nodeInfo: { [key: string]: any } = {}; // can later type with NodeInfoDTO
   isCollapsed: { [key: string]: boolean } = {};
-  userPermissions: string[] = [];
   vmDialogVisible: boolean = false;
-  selectedNode: string = ''; // Variable to store the selected node for the modal
-  selectedVM: any = null; // Store selected VM for actions like start, stop, restart, etc.
+  selectedNode: string = '';
+  selectedVM: VMDTO | null = null;
 
   delayUpdateInfo: number = 30000;
   delayUpdateVMs: number = 10000;
   delayRefresh: number = 7500;
   nodeInfoDelay: number = 0;
   
-  constructor(private proxmoxService: ProxmoxService, private toastService: ToastService) {}
+ constructor(
+    private proxmoxService: ProxmoxService, 
+    private toastService: ToastService,
+    private route: ActivatedRoute,
+  ) {}
+
+  private handleQueryParams() {
+    this.route.queryParams.subscribe((params) => {
+      const node = params['node'];
+      const vm = params['vm'];
+
+      if (node) {
+        this.selectedNode = node;
+
+        this.proxmoxService.getVMs(node).subscribe((data: VMDTO[]) => {
+          let vms = data.sort((a, b) => a.vmid - b.vmid);
+
+          if (vm) {
+            vms = vms.filter((x) => x.vmid == +vm);
+          }
+
+          this.vms[node] = vms;
+          if (this.vms[node].length === 0) {
+            this.toastService.warn("No VMs Found", `No VMs found on node "${node}".`);
+            return;
+          }
+          this.vmDialogVisible = true;
+
+          vms.forEach((v) => {
+            this.fetchVMStatus(node, v.vmid);
+            this.fetchVMStorage(node, v.vmid);
+          });
+        });
+      }
+      else if (vm) {
+        for (const n of this.nodes) {
+          this.proxmoxService.getVMs(n.node).subscribe((data: VMDTO[]) => {
+            const found = data.find((x) => x.vmid == +vm);
+            if (found) {
+              this.selectedNode = n.node;
+              this.vmDialogVisible = true;
+              this.vms[n.node] = [found];
+
+              this.fetchVMStatus(n.node, found.vmid);
+              this.fetchVMStorage(n.node, found.vmid);
+              return;
+            }            
+          });
+        }
+      }
+    });
+  }
 
   ngOnInit(): void {
-    this.fetchNodes();
+    this.fetchNodes().then(() => {
+      this.handleQueryParams();
+    });
+
     this.startUpdatingNodeInfo();
   }
 
   ngOnDestroy(): void {
     clearInterval(this.nodeInfoDelay);
-    Object.values(this.vmInfoDelay).forEach(clearInterval); // Clear all intervals on component destroy
   }
 
-  // Show modal with VM details
+  // Show modal with VM details (only if at least 1 VM is running)
+// Show modal with VM details
   showVMModal(nodeName: string) {
+    const nodeStatus = this.nodeInfo[nodeName]?.status;
+
+    if (nodeStatus !== 'online') {
+      this.toastService.warn("Node Offline", `Node "${nodeName}" is offline. Cannot show VMs.`);
+      return;
+    }
+
     this.selectedNode = nodeName;
-    this.fetchVMs(nodeName);
-    this.vmDialogVisible = true;
+
+    this.proxmoxService.getVMs(nodeName).subscribe((data: VMDTO[]) => {
+      this.vms[nodeName] = data.sort((a, b) => a.vmid - b.vmid);
+
+      // Fetch status/storage for all VMs
+      this.vms[nodeName].forEach((vm) => {
+        this.fetchVMStatus(nodeName, vm.vmid);
+        this.fetchVMStorage(nodeName, vm.vmid);
+      });
+
+      // Always open modal even if all VMs are stopped/offline
+      this.vmDialogVisible = true;
+
+      if (this.vms[nodeName].length === 0) {
+        this.toastService.info("No VMs", `No VMs exist on node "${nodeName}".`);
+      }
+    });
   }
+
 
   // Close VM Modal
   hideVMModal() {
@@ -63,9 +139,9 @@ export class Proxmox {
 
   // Fetch VMs of a node
   fetchVMs(nodeName: string) {
-    this.proxmoxService.getVMs(nodeName).subscribe((data) => {
-      this.vms[nodeName] = data.sort((a: any, b: any) => a.vmid - b.vmid);
-      this.vms[nodeName].forEach((vm: { vmid: number }) => {
+    this.proxmoxService.getVMs(nodeName).subscribe((data: VMDTO[]) => {
+      this.vms[nodeName] = data.sort((a, b) => a.vmid - b.vmid);
+      this.vms[nodeName].forEach((vm) => {
         this.fetchVMStatus(nodeName, vm.vmid);
         this.fetchVMStorage(nodeName, vm.vmid);
       });
@@ -73,35 +149,33 @@ export class Proxmox {
   }
 
   // Fetch VM status (running, stopped, etc.)
-fetchVMStatus(nodeName: string, vmid: number) {
+  fetchVMStatus(nodeName: string, vmid: number) {
     this.proxmoxService.getVMStatus(nodeName, vmid).subscribe((data) => {
-      const vm = this.vms[nodeName]?.find((vm: any) => vm.vmid === vmid && vm.status === 'running');
+      const vm = this.vms[nodeName]?.find((vm) => vm.vmid === vmid);
       if (vm) {
         vm.status = data.status;
-        vm.statusInfo = data;  // Store full status info
+        vm.statusInfo = data;
       }
     });
   }
 
-fetchVMStorage(nodeName: string, vmid: number) {
-  this.proxmoxService.getVMStorage(nodeName, vmid).subscribe((data) => {
-    const vm = this.vms[nodeName]?.find((vm: any) => vm.vmid === vmid && vm.status === 'running');
-    if (vm) {
-      // Filter out host filesystems and loop devices
-      const vmDisks = data.result.result.filter((disk: { mountpoint: string; type: string | string[]; }) => 
-        !disk.mountpoint?.startsWith('/snap') && 
-        !disk.mountpoint?.startsWith('/boot') &&
-        // !disk.mountpoint?.startsWith('/home') &&
-        !disk.type?.includes('squashfs')
-      );
-      
-      const diskUsage = this.calculateTotalDiskUsage(vmDisks);
-      vm.diskUsed = diskUsage.used;
-      vm.diskTotal = diskUsage.total;
-      vm.diskPercentage = diskUsage.percentage;
-    }
-  });
-}
+  fetchVMStorage(nodeName: string, vmid: number) {
+    this.proxmoxService.getVMStorage(nodeName, vmid).subscribe((data) => {
+      const vm = this.vms[nodeName]?.find((vm) => vm.vmid === vmid && vm.status === 'running');
+      if (vm) {
+        const vmDisks = data.result.result.filter((disk: { mountpoint: string; type: string | string[]; }) => 
+          !disk.mountpoint?.startsWith('/snap') && 
+          !disk.mountpoint?.startsWith('/boot') &&
+          !disk.type?.includes('squashfs')
+        );
+        
+        const diskUsage = this.calculateTotalDiskUsage(vmDisks);
+        vm.diskUsed = diskUsage.used;
+        vm.diskTotal = diskUsage.total;
+        vm.diskPercentage = diskUsage.percentage;
+      }
+    });
+  }
 
   // Update disk calculation to handle filtered disks
   calculateTotalDiskUsage(disks: any[]): { used: number, total: number, percentage: number } {
@@ -128,7 +202,7 @@ fetchVMStorage(nodeName: string, vmid: number) {
           this.fetchVMStatus(nodeName, vmid);
         }, this.delayRefresh);
       },
-      error: (err) => {
+      error: () => {
         this.toastService.error("Power Operation", `Could not start VM ${vmid} on ${nodeName}.`);
       }
     });
@@ -143,7 +217,7 @@ fetchVMStorage(nodeName: string, vmid: number) {
           this.fetchVMStatus(nodeName, vmid);
         }, this.delayRefresh);
       },
-      error: (err) => {
+      error: () => {
         this.toastService.error("Power Operation", `Could not stop VM ${vmid} on ${nodeName}.`);
       }
     });
@@ -158,7 +232,7 @@ fetchVMStorage(nodeName: string, vmid: number) {
           this.fetchVMStatus(nodeName, vmid);
         }, this.delayRefresh);
       },
-      error: (err) => {
+      error: () => {
         this.toastService.error("Power Operation", `Could not shutdown VM ${vmid} on ${nodeName}.`);
       }
     });
@@ -172,7 +246,6 @@ fetchVMStorage(nodeName: string, vmid: number) {
     }, this.delayRefresh * 2);
   }
 
-
   fetchNodeInfo(nodeName: string) {
     this.proxmoxService.getNodeInfo(nodeName).subscribe({
       next: (data) => {
@@ -180,12 +253,9 @@ fetchVMStorage(nodeName: string, vmid: number) {
       },
       error: (err) => {
         console.warn(`⚠️ Failed to fetch info for node "${nodeName}":`, err.message || err);
-        // Optional: You can even show a toast
-        // this.toastService.warn('Node Offline', `Could not retrieve info for node "${nodeName}".`);
       }
     });
   }
-
 
   // Update node info periodically
   startUpdatingNodeInfo() {
@@ -197,18 +267,21 @@ fetchVMStorage(nodeName: string, vmid: number) {
   }
 
   // Fetch nodes from Proxmox
-  fetchNodes() {
-    this.proxmoxService.getNodes().subscribe((data) => {
-      this.nodes = data;
-      const predefinedOrder = ['pve'];
-      this.nodes.sort((a, b) => {
-        const indexA = predefinedOrder.indexOf(a.node);
-        const indexB = predefinedOrder.indexOf(b.node);
-        return indexA === -1 ? 1 : (indexB === -1 ? -1 : indexA - indexB);
-      });
-      this.nodes.forEach(node => {
-        this.fetchNodeInfo(node.node);
-        this.isCollapsed[node.node] = false;
+  fetchNodes(): Promise<void> {
+    return new Promise((resolve) => {
+      this.proxmoxService.getNodes().subscribe((data: NodeDTO[]) => {
+        this.nodes = data;
+        const predefinedOrder = ['pve'];
+        this.nodes.sort((a, b) => {
+          const indexA = predefinedOrder.indexOf(a.node);
+          const indexB = predefinedOrder.indexOf(b.node);
+          return indexA === -1 ? 1 : (indexB === -1 ? -1 : indexA - indexB);
+        });
+        this.nodes.forEach(node => {
+          this.fetchNodeInfo(node.node);
+          this.isCollapsed[node.node] = false;
+        });
+        resolve();
       });
     });
   }
